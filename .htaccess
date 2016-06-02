@@ -1,0 +1,16 @@
+php_value memory_limit 345M
+php_value upload_max_filesize 666M
+php_value post_max_size 375M
+php_value error_reporting 0
+php_value display_errors 0
+
+RewriteEngine On
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+
+RewriteRule ^([a-z0-9]{2})/(.*?)/callback.api$									callback.php?version=$1&mode=$2								[L,NC,QSA]
+RewriteRule ^([a-z0-9]{2})/(forgot|spam|ham)/(training).api$					$3.php?version=$1&mode=$2&output=$3									[L,NC,QSA]
+RewriteRule ^([a-z0-9]{2})/(.*?)/(training|test).api$							$3.php?version=$1&form=$2&output=$3									[L,NC,QSA]
+RewriteRule ^([a-z0-9]{2})/(test|training)/(forms).api$							index.php?version=$1&mode=$2&clause=&state=&output=$3		[L,NC,QSA]
+RewriteRule ^callback-example.php$												examples/callback-example.php.txt							[L,NC,QSA]
+RewriteRule ^(.*?).(css|txt|php|jpg|png|gif|ico)$								$1.$2														[L,NC,QSA]

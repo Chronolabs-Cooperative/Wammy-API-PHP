@@ -1,0 +1,13 @@
+From: %fromname (%fromaddy)
+Subject: %subject
+Date: %whenmnthday PDT
+To: %recipient
+Return-Path: <%fromaddy>
+Envelope-To: %recipient
+Delivery-Date: %whendayname
+Received: from %callerhost ([%callerip]:%callerport) by $fromhost (envelope-from <%fromaddy>) id %testid for %recipient; %whendayname
+Received: by %apiip with HTTP; %whendayname (PDT)
+Message-Id: <%testid@%apidomain>
+Mime-Version: 1.0
+Content-Type: %mimetype;
+Message Body: %message
