@@ -35,17 +35,17 @@
 /**
  * @var string		Database Name (Database Source One)
  */
-define('DB_WAMMY_NAME', 'wammy-xortify-com');
+define('DB_WAMMY_NAME', 'wammy-labs-coop');
 
 /**
  * @var string		Database Username (Database Source One)
  */
-define('DB_WAMMY_USER', 'whammy');
+define('DB_WAMMY_USER', 'wammy-labs-coop');
 
 /**
  * @var string		Database Password (Database Source One)
  */
-define('DB_WAMMY_PASS', 'p4ssw0rd--');
+define('DB_WAMMY_PASS', 'MAFMI9CZ9uSFOHSq');
 
 /**
  * @var string		Database Host Address/IP (Database Source One)
@@ -60,7 +60,7 @@ define('DB_WAMMY_CHAR', 'utf8');
 /**
  * @var string		Database Persistency Connection (Global)
  */
-define('DB_WAMMY_PERS', true);
+define('DB_WAMMY_PERS', false);
 
 /**
  * @var string		Database Types (Global)

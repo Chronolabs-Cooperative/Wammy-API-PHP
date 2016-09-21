@@ -23,12 +23,12 @@
 
 	global $source, $ipid;
 	set_time_limit(3600);
-	error_reporting(E_ERROR);
-	ini_set('display_errors', true);
-	
-	/**
-	 * Opens Access Origin Via networking Route NPN
-	*/
+
+	if (!defined('API_DEBUG'))
+		define('API_DEBUG', false);
+	/** 
+	 * Access Origin Via networking Route NPN
+ 	 */
 	header('Access-Control-Allow-Origin: *');
 	header('Origin: *');
 	

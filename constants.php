@@ -26,7 +26,7 @@
 	 *
 	 * @var string
 	 */
-	define('API_VERSION', '3.0.1');
+	define('API_VERSION', '3.0.3');
 	define('API_URL', (!isset($_SERVER["HTTP_HOST"]) ? "http://wammy.labs.coop" :
 						(isset($_SERVER["HTTPS"])?'https://':'http://').$_SERVER["HTTP_HOST"]));
 	define('API_URL_CALLBACK', API_URL . '/v3/%s/callback.api');

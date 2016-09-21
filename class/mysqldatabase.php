@@ -1,6 +1,6 @@
 <?php
 /**
- * Chronolabs Spam/Ham tester+training REST API
+ * Chronolabs REST GeoSpatial Places API
  *
  * You may not change or alter any portion of this comment or credits
  * of supporting developers from this source code or any supporting source code
@@ -9,16 +9,14 @@
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  *
- * @copyright       	Chronolabs Cooperative http://labs.coop
- * @license         	General Public License version 3 (http://labs.coop/briefs/legal/general-public-licence/13,3.html)
- * @package         	spam-apis
- * @since           	2.0.1
- * @author          	Simon Roberts <wishcraft@users.sourceforge.net>
- * @subpackage			api
- * @description			Spam/Ham tester+training REST API
- * @see					http://sourceforge.net/projects/chronolabsapis
- * @see					http://wammy.labs.coop
- * @see					http://cipher.labs.coop
+ * @copyright       Chronolabs Cooperative http://labs.coop
+ * @license         General Public License version 3 (http://labs.coop/briefs/legal/general-public-licence/13,3.html)
+ * @package         places
+ * @since           1.0.2
+ * @author          Simon Roberts <wishcraft@users.sourceforge.net>
+ * @version         $Id: functions.php 1000 2013-06-07 01:20:22Z mynamesnot $
+ * @subpackage		api
+ * @description		REST GeoSpatial Places API
  */
 
 
@@ -37,6 +35,7 @@ class WammyMySQLDatabase extends WammyDatabase
 	 * destructor
 	 */
 	function __destruct() {
+		$this->queryF("COMMIT");
 		if ($this->conn) {
 			self::close();
 		}
@@ -50,27 +49,29 @@ class WammyMySQLDatabase extends WammyDatabase
      */
     public function connect($selectdb = true)
     {
+    	if (API_DEBUG==true) echo (basename(__FILE__) . "::"  . __CLASS__ . "::" . __FUNCTION__ . "::" . __LINE__ . "<br/>\n");
+    	
         static $db_charset_set;
 
-        if (!extension_loaded('mysql')) {
-            trigger_error('notrace:mysql extension not loaded', E_USER_ERROR);
+        if (!extension_loaded('mysqli')) {
+            trigger_error('notrace:mysqli extension not loaded', E_USER_ERROR);
             return false;
         }
 
         $this->allowWebChanges = ($_SERVER['REQUEST_METHOD'] != 'GET');
 
         if (DB_WAMMY_PERS == true) {
-            $this->conn = @mysql_pconnect(DB_WAMMY_HOST, DB_WAMMY_USER, DB_WAMMY_PASS);
+            $this->conn = @mysqli_connect(DB_WAMMY_HOST, DB_WAMMY_USER, DB_WAMMY_PASS, DB_WAMMY_NAME);
         } else {
-            $this->conn = @mysql_connect(DB_WAMMY_HOST, DB_WAMMY_USER, DB_WAMMY_PASS);
+            $this->conn = @mysqli_connect(DB_WAMMY_HOST, DB_WAMMY_USER, DB_WAMMY_PASS, DB_WAMMY_NAME);
         }
 
         if (!$this->conn) {
-			trigger_error('No Connection (Server 1): ' . mysql_error());
+			trigger_error('No Connection (Server 1): ' . mysqli_error());
         } else
 			if ($selectdb != false) {
-				if (!mysql_select_db(DB_WAMMY_NAME)) {
-					die('Could not select: ' . mysql_error());
+				if (!mysqli_select_db($this->conn, DB_WAMMY_NAME)) {
+					die('Could not select: ' . mysqli_error());
 				}
 			}
         if (!isset($db_charset_set) && defined('DB_WAMMY_CHAR') && DB_WAMMY_CHAR) {
@@ -78,6 +79,7 @@ class WammyMySQLDatabase extends WammyDatabase
         }
         $db_charset_set = 1;
         $this->queryF("SET SQL_BIG_SELECTS = 1");
+        if (API_DEBUG==true) echo (basename(__FILE__) . "::"  . __CLASS__ . "::" . __FUNCTION__ . "::" . __LINE__ . "<br/>\n");
         return true;
     }
 
@@ -103,7 +105,7 @@ class WammyMySQLDatabase extends WammyDatabase
      */
     public function fetchRow($result)
     {
-        return @mysql_fetch_row($result);
+        return @mysqli_fetch_row($result);
     }
 
     /**
@@ -114,7 +116,7 @@ class WammyMySQLDatabase extends WammyDatabase
      */
     public function fetchArray($result)
     {
-        return @mysql_fetch_assoc($result);
+        return @mysqli_fetch_assoc($result);
     }
 
     /**
@@ -125,18 +127,18 @@ class WammyMySQLDatabase extends WammyDatabase
      */
     public function fetchBoth($result)
     {
-        return @mysql_fetch_array($result, MYSQL_BOTH);
+        return @mysqli_fetch_array($result, mysqli_BOTH);
     }
 
     /**
-     * WammyMySQLDatabase::fetchObjected()
+     * DebauchMySQLDatabase::fetchObjected()
      *
      * @param resource $result
      * @return object|stdClass
      */
     public function fetchObject($result)
     {
-        return @mysql_fetch_object($result);
+        return @mysqli_fetch_object($result);
     }
 
     /**
@@ -146,7 +148,7 @@ class WammyMySQLDatabase extends WammyDatabase
      */
     public function getInsertId()
     {
-        return mysql_insert_id($this->conn);
+        return mysqli_insert_id($this->conn);
     }
 
     /**
@@ -157,7 +159,7 @@ class WammyMySQLDatabase extends WammyDatabase
      */
     public function getRowsNum($result)
     {
-        return @mysql_num_rows($result);
+        return @mysqli_num_rows($result);
     }
 
     /**
@@ -167,7 +169,7 @@ class WammyMySQLDatabase extends WammyDatabase
      */
     public function getAffectedRows()
     {
-        return mysql_affected_rows($this->conn);
+        return mysqli_affected_rows($this->conn);
     }
 
     /**
@@ -177,7 +179,7 @@ class WammyMySQLDatabase extends WammyDatabase
      */
     public function close()
     {
-        mysql_close($this->conn);
+        mysqli_close($this->conn);
     }
 
     /**
@@ -188,7 +190,7 @@ class WammyMySQLDatabase extends WammyDatabase
      */
     public function freeRecordSet($result)
     {
-        return mysql_free_result($result);
+        return mysqli_free_result($result);
     }
 
     /**
@@ -198,7 +200,7 @@ class WammyMySQLDatabase extends WammyDatabase
      */
     public function error()
     {
-        return @mysql_error();
+        return @mysqli_error();
     }
 
     /**
@@ -208,7 +210,7 @@ class WammyMySQLDatabase extends WammyDatabase
      */
     public function errno()
     {
-        return @mysql_errno();
+        return @mysqli_errno();
     }
 
     /**
@@ -230,9 +232,20 @@ class WammyMySQLDatabase extends WammyDatabase
      */
     public function quote($string)
     {
-        return "'" . str_replace("\\\"", '"', str_replace("\\&quot;", '&quot;', mysql_real_escape_string($string, $this->conn))) . "'";
+        return "'" . str_replace("\\\"", '"', str_replace("\\&quot;", '&quot;', $this->escape($string))) . "'";
     }
 
+    /**
+     * Quotes a string for use in a query.
+     *
+     * @param $string
+     * @return string
+     */
+    public function escape($string)
+    {
+    	return mysqli_real_escape_string($this->conn, $string);
+    }
+    
     /**
      * perform a query on the database
      *
@@ -250,16 +263,11 @@ class WammyMySQLDatabase extends WammyDatabase
             }
             $sql = $sql . ' LIMIT ' . (int) $start . ', ' . (int) $limit;
         }
-        $result = mysql_query($sql, $this->conn);
+        $result = mysqli_query($this->conn, $sql);
         if ($result) {
             return $result;
         } else {
-		if (file_exists($fil = __DIR__ . DIRECTORY_SEPARATOR . "errorsdb.txt"))
-			$errors = array_unique(file($fil));
-		else
-			$errors = array();
-        	trigger_error($errors[] = 'MySQL Error: ' . $sql .' ' . mysql_error()."\n");
-		file_put_contents($fil, implode("", $errors));
+        	trigger_error('MySQL Error: ' . $sql .' ' . mysqli_error());
             return false;
         }
     }
@@ -288,7 +296,7 @@ class WammyMySQLDatabase extends WammyDatabase
      */
     public function getFieldName($result, $offset)
     {
-        return mysql_field_name($result, $offset);
+        return mysqli_field_name($result, $offset);
     }
 
     /**
@@ -300,7 +308,7 @@ class WammyMySQLDatabase extends WammyDatabase
      */
     public function getFieldType($result, $offset)
     {
-        return mysql_field_type($result, $offset);
+        return mysqli_field_type($result, $offset);
     }
 
     /**
@@ -311,15 +319,15 @@ class WammyMySQLDatabase extends WammyDatabase
      */
     public function getFieldsNum($result)
     {
-        return mysql_num_fields($result);
+        return mysqli_num_fields($result);
     }
 }
 
 /**
  * Safe Connection to a MySQL database.
  *
- * @author Kazumi Ono <onokazu@Wammy.org>
- * @copyright copyright (c) 2000-2003 Wammy.org
+ * @author Kazumi Ono <onokazu@Debauch.org>
+ * @copyright copyright (c) 2000-2003 Debauch.org
  * @package feeds
  * @subpackage spline
  */
@@ -346,8 +354,8 @@ class WammyMySQLDatabaseSafe extends WammyMySQLDatabase
  * This class allows only SELECT queries to be performed through its
  * {@link query()} method for security reasons.
  *
- * @author Kazumi Ono <onokazu@Wammy.org>
- * @copyright copyright (c) 2000-2003 Wammy.org
+ * @author Kazumi Ono <onokazu@Debauch.org>
+ * @copyright copyright (c) 2000-2003 Debauch.org
  * @package feeds
  * @subpackage spline
  */

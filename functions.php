@@ -37,7 +37,7 @@ if (!function_exists("getPeerIdentity")) {
 	function getPeerIdentity( $uri, $callback, $spam, $ham, $forget, $version, $polinating = true, $root = "http://wammy.labs.coop" ) {
 
 		$sql = "SELECT * FROM `peers` WHERE `api-uri` LIKE '%s'";
-		if ($GLOBALS['WammyDB']->getRowsNum($results = $GLOBALS['WammyDB']->queryF(sprintf($sql, mysql_real_escape_string($uri))))==1)
+		if ($GLOBALS['WammyDB']->getRowsNum($results = $GLOBALS['WammyDB']->queryF(sprintf($sql, mysqli_real_escape_string($uri))))==1)
 		{
 			$peer = $GLOBALS['WammyDB']->fetchArray($results);
 			return $peer['peerid'];
@@ -46,7 +46,7 @@ if (!function_exists("getPeerIdentity")) {
 				$polinating = false;
 			$sql = "INSERT INTO `peers` (`peerid`, `polinating`, `api-uri`, `api-uri-callback`, `api-uri-spam`, `api-uri-ham`, `api-uri-forget`, `version`, `created`) VALUES ('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s')";
 			$peerid = md5($url.$version.$callback.$spam.$ham.$forget.$polinating.$root.microtime(true));
-			if ($GLOBALS['WammyDB']->queryF(sprintf($sql, mysql_real_escape_string($peerid), ($polinating==true?"yes":"no"), mysql_real_escape_string($uri), mysql_real_escape_string($callback), mysql_real_escape_string($spam), mysql_real_escape_string($ham), mysql_real_escape_string($forget), mysql_real_escape_string($version), time())) && $polinating == true)
+			if ($GLOBALS['WammyDB']->queryF(sprintf($sql, mysqli_real_escape_string($peerid), ($polinating==true?"yes":"no"), mysqli_real_escape_string($uri), mysqli_real_escape_string($callback), mysqli_real_escape_string($spam), mysqli_real_escape_string($ham), mysqli_real_escape_string($forget), mysqli_real_escape_string($version), time())) && $polinating == true)
 			{
 				@setCallBackURI($root . "/v3/register/callback.api", 145, 145, array('peerid'=>$peerid, 'api-uri' => $url, 'api-uri-callback' => $callback, 'api-uri-ham' => $ham, 'api-uri-spam' => $spam, 'api-uri-forget' => $forget, 'version' => $version, 'polinating' => $polinating));
 			}
@@ -74,7 +74,7 @@ if (!function_exists("setCallBackURI")) {
 		if ($when<time())
 			$when = $time();
 		$when = $when + mt_rand(3, 14);
-		return $GLOBALS['WammyDB']->queryF("INSERT INTO `callbacks` (`when`, `uri`, `timeout`, `connection`, `data`, `queries`) VALUES(\"$when\", \"$uri\", \"$timeout\", \"$connectout\", \"" . mysql_real_escape_string(json_encode($data)) . "\",\"" . mysql_real_escape_string(json_encode($queries)) . "\")");
+		return $GLOBALS['WammyDB']->queryF("INSERT INTO `callbacks` (`when`, `uri`, `timeout`, `connection`, `data`, `queries`) VALUES(\"$when\", \"$uri\", \"$timeout\", \"$connectout\", \"" . mysqli_real_escape_string(json_encode($data)) . "\",\"" . mysqli_real_escape_string(json_encode($queries)) . "\")");
 	}
 }
 
@@ -610,25 +610,28 @@ if (!function_exists("getIPIdentity")) {
 		
 		if (!isset($_SESSION['networking'][$ip]))
 		{
-			$uris = cleanWhitespaces(file($file = __DIR__ . DIRECTORY_SEPARATOR . "data" . DIRECTORY_SEPARATOR . "lookups.diz"));
-			shuffle($uris); shuffle($uris); shuffle($uris); shuffle($uris);
-			if (filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE || FILTER_FLAG_NO_RES_RANGE) === false)
+			if (defined('API_NETWORK_LOGIC'))
 			{
-				$data = array();
-				foreach($uris as $uri)
+				$uris = cleanWhitespaces(file($file = __DIR__ . DIRECTORY_SEPARATOR . "data" . DIRECTORY_SEPARATOR . "lookups.diz"));
+				shuffle($uris); shuffle($uris); shuffle($uris); shuffle($uris);
+				if (filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE || FILTER_FLAG_NO_RES_RANGE) === false)
 				{
-					if ($data['ip']==$ip || $data['country']['iso'] == "-" || empty($data))
-						$data = json_decode(getURIData(sprintf($uri, 'myself', 'json'), 120, 120), true);
-						if (count($data) > 0 &&  $data['country']['iso'] != "-")
-							continue;
-				}
-			} else{
-				foreach($uris as $uri)
-				{
-					if ($data['ip']!=$ip || $data['country']['iso'] == "-" || empty($data))
-						$data = json_decode(getURIData(sprintf($uri, $ip, 'json'), 120, 120), true);
-						if (count($data) > 0 &&  $data['country']['iso'] != "-")
-							continue;
+					$data = array();
+					foreach($uris as $uri)
+					{
+						if ($data['ip']==$ip || $data['country']['iso'] == "-" || empty($data))
+							$data = json_decode(getURIData(sprintf($uri, 'myself', 'json'), 3, 6), true);
+							if (count($data) > 0 &&  $data['country']['iso'] != "-")
+								continue;
+					}
+				} else{
+					foreach($uris as $uri)
+					{
+						if ($data['ip']!=$ip || $data['country']['iso'] == "-" || empty($data))
+							$data = json_decode(getURIData(sprintf($uri, $ip, 'json'), 3, 6), true);
+							if (count($data) > 0 &&  $data['country']['iso'] != "-")
+								continue;
+					}
 				}
 			}
 	
@@ -654,33 +657,36 @@ if (!function_exists("getIPIdentity")) {
 			$_SESSION['networking'][$ip]['last'] = $_SESSION['networking'][$ip]['created'] = time();
 			$whois = array();
 			$whoisuris = cleanWhitespaces(file(__DIR__  . DIRECTORY_SEPARATOR .  "data" . DIRECTORY_SEPARATOR . "whois.diz"));
-			shuffle($whoisuris); shuffle($whoisuris); shuffle($whoisuris); shuffle($whoisuris);
-			foreach($whoisuris as $uri)
-			{
-				if (empty($whois[$_SESSION['networking'][$ip]['type']]) || !isset($whois[$_SESSION['networking'][$ip]['type']]))
+			if (defined('API_NETWORK_LOGIC'))
+                        {
+				shuffle($whoisuris); shuffle($whoisuris); shuffle($whoisuris); shuffle($whoisuris);
+				foreach($whoisuris as $uri)
 				{
-					$whois[$_SESSION['networking'][$ip]['type']] = json_decode(getURIData(sprintf($uri, $_SESSION['networking'][$ip]['ipaddy'], 'json'), 120, 120), true);
-				} elseif (empty($whois['domain']) || !isset($whois['domain']))
+					if (empty($whois[$_SESSION['networking'][$ip]['type']]) || !isset($whois[$_SESSION['networking'][$ip]['type']]))
+					{
+						$whois[$_SESSION['networking'][$ip]['type']] = json_decode(getURIData(sprintf($uri, $_SESSION['networking'][$ip]['ipaddy'], 'json'), 3, 6), true);
+					} elseif (empty($whois['domain']) || !isset($whois['domain']))
+					{
+						$whois['domain'] = json_decode(getURIData(sprintf($uri, $_SESSION['networking'][$ip]['domain'], 'json'), 3, 6), true);
+					} else
+						continue;
+				}
+				$wsid = md5(json_encode($whois));
+				$sql = "SELECT count(*) FROM `whois` WHERE `id` = '".$wsid = md5(json_encode($whois))."'";
+				list($countb) = $GLOBALS['WammyDB']->fetchRow($GLOBALS['WammyDB']->queryF($sql));
+				if ($countb == 0)
 				{
-					$whois['domain'] = json_decode(getURIData(sprintf($uri, $_SESSION['networking'][$ip]['domain'], 'json'), 120, 120), true);
-				} else
-					continue;
-			}
-			$wsid = md5(json_encode($whois));
-			$sql = "SELECT count(*) FROM `whois` WHERE `id` = '".$wsid = md5(json_encode($whois))."'";
-			list($countb) = $GLOBALS['WammyDB']->fetchRow($GLOBALS['WammyDB']->queryF($sql));
-			if ($countb == 0)
-			{
-				$wsdata = array();
-				$wsdata['id'] = $wsid;
-				$wsdata['whois'] = mysql_real_escape_string(json_encode($whois));
-				$wsdata['created'] = time();
-				$wsdata['last'] = time();
-				$wsdata['instances'] = 1;
-				if (!$GLOBALS['WammyDB']->queryF($sql = "INSERT INTO `whois` (`" . implode('`, `', array_keys($wsdata)) . "`) VALUES ('" . implode("', '", $wsdata) . "')"))
-					@$GLOBALS['WammyDB']->queryF($sql = "UPDATE `whois` SET `instances` = `instances` + 1, `last` = unix_timestamp() WHERE `id` =  '$wsid'");
-			} else {
+					$wsdata = array();
+					$wsdata['id'] = $wsid;
+					$wsdata['whois'] = mysqli_real_escape_string(json_encode($whois));
+					$wsdata['created'] = time();
+					$wsdata['last'] = time();
+					$wsdata['instances'] = 1;
+					if (!$GLOBALS['WammyDB']->queryF($sql = "INSERT INTO `whois` (`" . implode('`, `', array_keys($wsdata)) . "`) VALUES ('" . implode("', '", $wsdata) . "')"))
+						@$GLOBALS['WammyDB']->queryF($sql = "UPDATE `whois` SET `instances` = `instances` + 1, `last` = unix_timestamp() WHERE `id` =  '$wsid'");
+				} else {
 					
+				}
 			}
 			$_SESSION['networking'][$ip]['ipid'] = md5(json_encode($_SESSION['networking'][$ip]));
 			$_SESSION['networking'][$ip]['whois'] = array($wsid=>$wsid);
@@ -688,9 +694,9 @@ if (!function_exists("getIPIdentity")) {
 			$data = array();
 			foreach($_SESSION['networking'][$ip] as $key => $value)
 				if (is_array($value))
-					$data[$key] = mysql_real_escape_string(json_encode($value));
+					$data[$key] = mysqli_real_escape_string(json_encode($value));
 				else
-					$data[$key] = mysql_real_escape_string($value);
+					$data[$key] = mysqli_real_escape_string($value);
 
 			$sql['selectb'] = "SELECT * from `networking` WHERE `ipid` LIKE '" . $data['ipid'] . "'";
 			if (!$GLOBALS['WammyDB']->getRowsNum($GLOBALS['WammyDB']->queryF($sql['selectb'])))
@@ -732,7 +738,7 @@ if (!function_exists("getBaseDomain")) {
 			while(empty($classes) || $attempts <= (count($stratauris) * 1.65))
 			{
 				$attempts++;
-				$classes = array_keys(unserialize(getURIData($stratauris[mt_rand(0, count($stratauris)-1)] ."/v1/strata/serial.api", 120, 120)));
+				$classes = array_keys(unserialize(getURIData($stratauris[mt_rand(0, count($stratauris)-1)] ."/v1/strata/serial.api", 3, 6)));
 			}
 		}
 		if (empty($fallout))
@@ -746,7 +752,7 @@ if (!function_exists("getBaseDomain")) {
 			while(empty($fallout) || $attempts <= (count($stratauris) * 1.65))
 			{
 				$attempts++;
-				$fallout = array_keys(unserialize(getURIData($stratauris[mt_rand(0, count($stratauris)-1)] ."/v1/fallout/serial.api", 120, 120)));
+				$fallout = array_keys(unserialize(getURIData($stratauris[mt_rand(0, count($stratauris)-1)] ."/v1/fallout/serial.api", 3, 6)));
 			}
 		}
 
