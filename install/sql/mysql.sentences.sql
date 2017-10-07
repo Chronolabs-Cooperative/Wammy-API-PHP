@@ -36,7 +36,7 @@ CREATE TABLE `sentences` (
   `sequence` varchar(32) NOT NULL DEFAULT '',
   `job` varchar(32) NOT NULL DEFAULT '',
   `mode` enum('textual','image','unknown') NOT NULL DEFAULT 'unknown',
-  `typal` enum('sentence','header','question','bullet','unknown') NOT NULL DEFAULT 'unknown',
+  `typal` enum('sentence','header','question','list','unknown') NOT NULL DEFAULT 'unknown',
   `balance` enum('spamming','hamming','crassed','balanced') NOT NULL DEFAULT 'balanced',
   `highest` mediumint(32) NOT NULL DEFAULT '0',
   `lowest` mediumint(32) NOT NULL DEFAULT '0',
