@@ -20,9 +20,10 @@
  * @link			http://cipher.labs.coop
  */
 
+global $sessionid, $source;
 require_once __DIR__ . DIRECTORY_SEPARATOR . 'header.php';
 
-xoops_load('APICache');
+$GLOBALS['APIDB']->queryF("START TRANSACTION");
 
 /**
  * URI Path Finding of API URL Source Locality
@@ -71,6 +72,7 @@ $version = isset($inner['version'])?(string)$inner['version']:'v4';
 $state = isset($inner['state'])?(string)$inner['state']:'raw';
 $mode = isset($inner['mode'])?(string)$inner['mode']:'return';
 $output = isset($inner['output'])?(string)$inner['output']:'test';
+$inner['mimetype'] = isset($inner['mimetype'])?(string)$inner['mimetype']:'text/plain';
 switch($output)
 {
     case "test":
@@ -107,149 +109,221 @@ if (!$data = APICache::read($keyname))
     if (count($errors)>0) {
         if (function_exists('http_response_code'))
             http_response_code(500);
-        $data = array('state' => 'error occured', 'errors'=>$errors, 'peerid'=>$GLOBALS['peerid']);
-        header('Content-type: application/json');
-        die(json_encode($data));
+            $data = array('state' => 'error occured', 'errors'=>$errors, 'sessionid'=>$GLOBALS['sessionid']);
+            header('Content-type: application/json');
+            die(json_encode($data));
     } else {
         
-        
-        
-        
-        
-                mkdirSecure(DIR_SPAM_TESTING);
-                $template = file_get_contents(__DIR__ . DIRECTORY_SEPARATOR . 'data' . DIRECTORY_SEPARATOR . 'testing-template.diz');
-                foreach(($resource = getTemplateArray($inner, $output)) as $key => $value)
-                    $template = str_replace("%key", $value, $template);
-                    $fname = DIR_SPAM_TESTING . DIRECTORY_SEPARATOR . $resource['testid'] . '@' . $resource['apidomain'] . '.msg';
-                    writeRawFile($fname, $template);
-                    
-                    $sout = array();
-                    $rvar = false;
-                    exec(sprintf(API_SPAMTESTER, $fname), $sout, $rvar);
-                    unlink($fname);
-                    $beta = $alpha = $nums = 0;
-                    foreach($sout as $key => $valstore)
+        require_once API_ROOT_PATH . DS . 'class' . DS . 'uploader.php';
+        xoops_load('APILists');
+        switch ($mode)
+        {
+            case "return":
+                
+                $sql = "INSERT INTO `" . $GLOBALS['APIDB']->prefix('jobs') . "` (`state`, `mode`, `typal`, `balance`, `hashing`, `created`, `actionable`) VALUES('queued', 'textual', 'testing', 'none', '" . ($hashing = md5(json_encode($inner))) . "', UNIX_TIMESTAMP(), UNIX_TIMESTAMP() + " . API_DELAY_SECONDS . ")";
+                if ($GLOBALS['APIDB']->queryF($sql))
+                {
+                    $jid = $GLOBALS['APIDB']->getInsertId();
+                    $sql = "INSERT INTO `" . $GLOBALS['APIDB']->prefix('routes') . "` (`jid`, `mode`, `medium`, `mimetype`, `training`, `api_url`, `subject`, `recipient_username`, `sender_username`, `recipient_name`, `sender_name`, `recipient_email`, `sender_email`, `recipient_ip`, `sender_ip`, `path`, `file`, `created`, `actionable`) VALUES('$jid', 'testing', 'image', '" . ( !isset($inner['mimetype']) ? 'text/plain' : $inner['mimetype'] ) . "', 'none', '" . mysqli_real_escape_string($GLOBALS['APIDB']->conn, $inner['callback']) . "', '" . mysqli_real_escape_string($GLOBALS['APIDB']->conn, $inner['subject']) . "', , '" . mysqli_real_escape_string($GLOBALS['APIDB']->conn, $inner['usernames']['recipient']) . "', '" . mysqli_real_escape_string($GLOBALS['APIDB']->conn, $inner['usernames']['sender']) . "',, '" . mysqli_real_escape_string($GLOBALS['APIDB']->conn, $inner['names']['recipient']) . "', '" . mysqli_real_escape_string($GLOBALS['APIDB']->conn, $inner['names']['sender']) . "', , '" . mysqli_real_escape_string($GLOBALS['APIDB']->conn, $inner['emails']['recipient']) . "', '" . mysqli_real_escape_string($GLOBALS['APIDB']->conn, $inner['emails']['sender']) . "', , '" . mysqli_real_escape_string($GLOBALS['APIDB']->conn, whitelistGetIP(true)) . "', '" . mysqli_real_escape_string($GLOBALS['APIDB']->conn, $inner['sender-ip']) . "', '" . str_replace(array(API_VAR_PATH, API_PATH), '', DS . 'queuing' . DS . 'testing' . DS . 'textual') . "', '$hashing%s', UNIX_TIMESTAMP(), UNIX_TIMESTAMP() + " . API_DELAY_SECONDS . ")";
+                    if ($GLOBALS['APIDB']->queryF($sql))
                     {
-                        if (strpos($valstore, "/")>0)
-                        {
-                            $parts = explode("/", $valstore);
-                            if (count($parts)==2&&$parts[0]!=0&&$parts[1]!=0)
-                            {
-                                $nums++;
-                                $alpha = $alpha + ((float)$parts[0] * 1000 + 1);
-                                $beta = $beta + ((float)$parts[1] * 1000 + 2);
-                            }
-                        }
-                    }
-                    if ($nums>0)
-                    {
-                        $alpha = $alpha / $nums;
-                        $beta = $beta / $nums;
-                    }
-                    
-                    $sql = "UPDATE `tests` SET `score-alpha` = '%s', `score-beta` = '%s' WHERE `testid` LIKE '%s'";
-                    $GLOBALS['WammyDB']->queryF($sql = sprintf($sql, $alpha, $beta, $resource['testid']));
-                    $sql = "UPDATE `users` SET `score-alpha` = `score-alpha` + '%s' / 2, `score-beta` = `score-beta` + '%s' / 2 WHERE `userid` LIKE '%s'";
-                    $GLOBALS['WammyDB']->queryF($sql = sprintf($sql, $alpha, $beta, $resource['sender-userid']));
-                    $sql = "UPDATE `users` SET `score-alpha` = `score-alpha` + '%s' / 2, `score-beta` = `score-beta` + '%s' / 2 WHERE `userid` LIKE '%s'";
-                    $GLOBALS['WammyDB']->queryF($sql = sprintf($sql, $alpha, $beta, $resource['recipient-userid']));
-                    $sql = "SELECT max(`score-alpha`) as `maximum-alpha`, avg(`score-alpha`) as `average-alpha`, stddev(`score-alpha`) as `stddev-alpha`, max(`score-beta`) as `maximum-beta`, avg(`score-beta`) as `average-beta`, stddev(`score-beta`) as `stddev-beta` FROM  `tests`";
-                    if (!$data = $GLOBALS['WammyDB']->fetchArray($GLOBALS['WammyDB']->queryF($sql)))
-                        die("SQL Failed: $sql;");
-                        if ($alpha==0 && $beta == 0) {
-                            $data['result'] = 'ham';
-                        } elseif ($data['maximum-alpha']>0 && $alpha < ($data['average-alpha'] - $data['stddev-alpha']) && $data['maximum-beta']>0 && $beta < ($data['average-beta'] - $data['stddev-beta']) || ($alpha / $beta / 1000 * 100) < 41) {
-                            $data['result'] = 'ham';
-                        } else {
-                            $data['result'] = 'spam';
-                        }
+                        $rid = $GLOBALS['APIDB']->getInsertId();
                         
-                        $update = array();
-                        foreach($data as $key => $value)
-                            $update[] = "`$key` = \"" . mysql_real_escape_string($value) . "\"";
-                            $sql = "UPDATE `tests` SET " . implode(", ", $update) . " WHERE `testid` LIKE '%s'";
-                            $GLOBALS['WammyDB']->queryF($sql = sprintf($sql, $resource['testid']));
+                        $fname = API_PATH . DS . 'queuing' . DS . 'testing' . DS . 'textual' . DS  . $hashing . '.msg';
+                        writeRawFile($fname, $template);
+                        
+                        require_once API_ROOT_PATH . DS . 'class' . DS . 'sentences.php';
+                        $sentences = new APISentences($inner['message']);
+                        
+                        $fname = API_PATH . DS . 'queuing' . DS . 'testing' . DS . 'textual' . DS  . $hashing . '.json';
+                        writeRawFile($fname, json_encode($sentences->getDumpArray()));
+                        
+                        $fname = API_PATH . DS . 'queuing' . DS . 'testing' . DS . 'textual' . DS  . $hashing . '.inner.json';
+                        writeRawFile($fname, json_encode($inner));
+                        
+                        foreach($sentences->getCountArray() as $key => $value)
+                            $total[$key] = $total[$key] + $value;
                             
-                            $template = file_get_contents(__DIR__ . DIRECTORY_SEPARATOR . 'data' . DIRECTORY_SEPARATOR . 'training-template.diz');
-                            foreach($resource as $key => $value)
-                                $template = str_replace("%key", $value, $template);
-                                $fname = constant("DIR_TRAINING_".strtoupper($data['result'])) . DIRECTORY_SEPARATOR . $resource['testid'] . '@' . $resource['apidomain'] . '.msg';
-                                mkdirSecure(constant("DIR_TRAINING_".strtoupper($data['result'])));
-                                writeRawFile($fname, $template);
+                        foreach($totals as $ikey => $value)
+                            if (!$GLOBALS['APIDB']->queryF($sql = "UPDATE `" . $GLOBALS['APIDB']->prefix('jobs') . "` SET `$ikey` = '" . (is_numeric($value) ? floor( $value / ( count($totals) ) ) : mysqli_real_escape_string($GLOBALS['APIDB']->conn, $value) ) . " WHERE `jid` = '$jid'" ))
+                                die("SQL Failed: $sql;");
                                 
-                                $data['score-alpha'] = $alpha;
-                                $data['score-beta'] = $beta;
-                                if ($beta != 0 && $alpha < $beta)
-                                    $data['score-percentile'] = (float)$alpha / $beta * 100;
-                                    elseif ($alpha != 0 && $alpha > $beta)
-                                    $data['score-percentile'] = (float)$beta / $alpha * 100;
-                                    else
-                                        $data['score-percentile'] = 100;
-                                        
-                                        if (isset($inner['callback']) && !empty($inner['callback']))
-                                        {
-                                            $fname = DIR_TRAINING_DATA . DIRECTORY_SEPARATOR . $resource['testid'] . '@' . $resource['apidomain'] . '.json';
-                                            mkdirSecure(DIR_TRAINING_DATA);
-                                            writeRawFile($fname, json_encode(array('request'=>$inner, 'data'=>$data, 'peerid'=>$GLOBALS['peerid'])));
-                                        }
-                                        
-                                        $sql = "SELECT * FROM `peers` WHERE `peerid` NOT LIKE '%s' and `polinating` = 'Yes'";
-                                        $results = $GLOBALS['WammyDB']->queryF(sprintf($sql, mysql_real_escape_string($GLOBALS['peerid'])));
-                                        while($peer = $GLOBALS['WammyDB']->fetchArray($results))
-                                        {
-                                            if (!empty($peer['api-uri-'.$data['result']]))
-                                                setCallBackURI($peer['api-uri-'.$data['result']], 290, 290, array_merge($inner, array('peerid'=>$GLOBALS['peerid'])));
-                                        }
-                                        
-            }
-            
-            if (isset($inner['callback']) && !empty($inner['callback']))
-                setCallBackURI($inner['callback'], 290, 290, array_merge($inner, $data, array('peerid'=>$GLOBALS['peerid']), $resource));
-        }
-        
-        
-        if (function_exists('http_response_code'))
-            http_response_code(200);
-            
-            error_reporting(0);
-            if (!empty($data))
-            {
-                @APICache::write($keyname, $data, API_CACHE_SECONDS);
-                if (!$sessions = APICache::read('sessions-'.md5($_SERVER['HTTP_HOST'])))
-                    $sessions = array();
+                        if (!$GLOBALS['APIDB']->queryF($sql = "UPDATE `" . $GLOBALS['APIDB']->prefix('jobs') . "` SET `updated` = UNIX_TIMESTAMP() WHERE `jid` = '$jid'"))
+                            die("SQL Failed: $sql;");
+                            
+                    }
+                }
+                redirect_header($inner['return'], 0, '');
+                break;
+            default:
+                
+                $utf = array();
+                $status['ham'] = $status['spam'] = 0;
+                
+                $sql = "INSERT INTO `" . $GLOBALS['APIDB']->prefix('jobs') . "` (`state`, `mode`, `typal`, `balance`, `hashing`, `created`, `actionable`) VALUES('queued', 'textual', 'testing', 'none', '" . ($hashing = md5_file($uploaddir . DS . $file)) . "', UNIX_TIMESTAMP(), UNIX_TIMESTAMP() + " . API_DELAY_SECONDS . ")";
+                if ($GLOBALS['APIDB']->queryF($sql))
+                {
+                    $jid = $GLOBALS['APIDB']->getInsertId();
+                    $sql = "INSERT INTO `" . $GLOBALS['APIDB']->prefix('routes') . "` (`jid`, `mode`, `medium`, `mimetype`, `training`, `api_url`, `subject`, `recipient_username`, `sender_username`, `recipient_name`, `sender_name`, `recipient_email`, `sender_email`, `recipient_ip`, `sender_ip`, `path`, `file`, `created`, `actionable`) VALUES('$jid', 'testing', 'image', '" . ( !isset($inner['mimetype']) ? 'text/plain' : $inner['mimetype'] ) . "', 'none', '" . mysqli_real_escape_string($GLOBALS['APIDB']->conn, $inner['callback']) . "', '" . mysqli_real_escape_string($GLOBALS['APIDB']->conn, $inner['subject']) . "', , '" . mysqli_real_escape_string($GLOBALS['APIDB']->conn, $inner['usernames']['recipient']) . "', '" . mysqli_real_escape_string($GLOBALS['APIDB']->conn, $inner['usernames']['sender']) . "',, '" . mysqli_real_escape_string($GLOBALS['APIDB']->conn, $inner['names']['recipient']) . "', '" . mysqli_real_escape_string($GLOBALS['APIDB']->conn, $inner['names']['sender']) . "', , '" . mysqli_real_escape_string($GLOBALS['APIDB']->conn, $inner['emails']['recipient']) . "', '" . mysqli_real_escape_string($GLOBALS['APIDB']->conn, $inner['emails']['sender']) . "', , '" . mysqli_real_escape_string($GLOBALS['APIDB']->conn, whitelistGetIP(true)) . "', '" . mysqli_real_escape_string($GLOBALS['APIDB']->conn, $inner['sender-ip']) . "', '" . str_replace(API_VAR_PATH, '', dirname($imgfile)) . "', '" . basename($imgfile) . "', UNIX_TIMESTAMP(), UNIX_TIMESTAMP() + " . API_DELAY_SECONDS . ")";
+                    if ($GLOBALS['APIDB']->queryF($sql))
+                    {
+                        $rid = $GLOBALS['APIDB']->getInsertId();
+                    }
+                }
+                  
+                $totals = $status = array();
+                $ttlgamma = $ttlalpha = $ttlnums = 0;
+                    
+                $template = file_get_contents(__DIR__ . DIRECTORY_SEPARATOR . 'data' . DIRECTORY_SEPARATOR . 'testing-template.diz');
+                foreach(($resource = getTemplateArray($inner, '')) as $key => $value)
+                    $template = str_replace("%key", $value, $template);
+                $fname = API_VAR_PATH . DS . $hashing . '.msg';
+                writeRawFile($fname, $template);
+                $sout = array();
+                $rvar = false;
+                exec(sprintf(API_SPAMTESTER, $fname), $sout, $rvar);
+                unlink($fname);
+                $gamma = $alpha = $nums = 0;
+                foreach($sout as $key => $valstore)
+                {
+                    if (strpos($valstore, "/")>0)
+                    {
+                        $parts = explode("/", $valstore);
+                        if (count($parts)==2&&$parts[0]!=0&&$parts[1]!=0)
+                        {
+                            $nums++;
+                            $alpha = $alpha + ((float)$parts[0] * 1000 + 1);
+                            $gamma = $gamma + ((float)$parts[1] * 1000 + 2);
+                        }
+                    }
+                }
+                if ($nums>0)
+                {
+                    $alpha = $alpha / $nums;
+                    $gamma = $gamma / $nums;
+                }
+                
+                $ttlnums = $ttlnums + $nums;
+                $ttlalpha = $ttlalpha + $alpha;
+                $ttlgamma = $ttlgamma + $gamma;
+                
+                
+                $sql = "SELECT max(`alpha`) as `maximum-alpha`, avg(`alpha`) as `average-alpha`, stddev(`alpha`) as `stddev-alpha`, max(`gamma`) as `maximum-gamma`, avg(`gamma`) as `average-gamma`, stddev(`gamma`) as `stddev-gamma` FROM  `" . $GLOBALS["APIDB"]->prefix("jobs") . "`";
+                list($maxalpha, $avgalpha, $stdevalpha, $maxgamma, $avggamma, $stdevgamma) = $GLOBALS['APIDB']->fetchRow($GLOBALS['APIDB']->queryF($sql));
+                
+                if ($alpha==0 && $gamma == 0) {
+                    $elite = 'ham';
+                } elseif ($maxalpha>0 && $alpha < ($avgalpha - $stdevalpha) && $maxgamma>0 && $gamma < ($avggamma - $stddevgamma) || ($alpha / $gamma / 1000 * 100) < 41) {
+                    $elite = 'ham';
+                } elseif ($maxalpha>0 && ($ttlalpha / $ttlnums) < ($avgalpha - $stdevalpha) && $maxgamma>0 && ($ttlgamma / $ttlnums) < ($avggamma - $stddevgamma) || ($ttlalpha / $ttlgamma / 1000 * 100) < 51) {
+                    $elite = 'ham';
+                } else {
+                    $elite = 'spam';
+                }
+                
+                $status[$elite]++;
+                
+                
+                if ($status['spam'] > $status['ham'])
+                    $elite = 'spam';
+                elseif ($status['spam'] <= $status['ham'])
+                    $elite = 'ham';
+                
+                $fname = API_PATH . DS .'scoring' . DS . 'testing' . DS . $elite . DS . 'textual' . DS  . $hashing . '.msg';
+                writeRawFile($fname, $template);
+                
+                $fname = API_PATH . DS .'training' . DS . $elite . DS . 'textual' . DS  . $hashing . '.msg';
+                writeRawFile($fname, $template);
+                
+                require_once API_ROOT_PATH . DS . 'class' . DS . 'sentences.php';
+                $sentences = new APISentences($inner['message']);
+                
+                $fname = API_PATH . DS .'scoring' . DS . 'testing' . DS . $elite . DS . 'textual' . DS  . $hashing . '.json';
+                writeRawFile($fname, json_encode($sentences->getDumpArray()));
+                
+                foreach($sentences->getCountArray() as $key => $value)
+                    $total[$key] = $total[$key] + $value;
+  
+                
+                foreach($totals as $ikey => $value)
+                    if (!$GLOBALS['APIDB']->queryF($sql = "UPDATE `" . $GLOBALS['APIDB']->prefix('jobs') . "` SET `$ikey` = '" . (is_numeric($value) ? floor( $value / ( count($totals) ) ) : mysqli_real_escape_string($GLOBALS['APIDB']->conn, $value) ) . " WHERE `jid` = '$jid'" ))
+                        die("SQL Failed: $sql;");
+                        
+                if (!$GLOBALS['APIDB']->queryF($sql = "UPDATE `" . $GLOBALS['APIDB']->prefix('jobs') . "` SET `updated` = UNIX_TIMESTAMP() WHERE `jid` = '$jid'"))
+                    die("SQL Failed: $sql;");
+                    
+                if (!$GLOBALS['APIDB']->queryF($sql = "UPDATE `" . $GLOBALS['APIDB']->prefix('routes') . "` SET `file` = '".$hashing."%s', `path` = '" . 'scoring' . DS . 'testing' . DS . $elite . DS . 'textual' . "'  WHERE `rid` = '$rid'"))
+                    die("SQL Failed: $sql;");
+                foreach($totals as $ikey => $value)
+                    $totals[$ikey] = (is_numeric($value) ? floor( $value / ( count($totals) ) ) : $value );
+                    
+                $sql = "SELECT max(`alpha`) as `maximum-alpha`, avg(`alpha`) as `average-alpha`, stddev(`alpha`) as `stddev-alpha`, max(`gamma`) as `maximum-gamma`, avg(`gamma`) as `average-gamma`, stddev(`gamma`) as `stddev-gamma` FROM  `" . $GLOBALS["APIDB"]->prefix("jobs") . "`";
+                $lestats = $GLOBALS['APIDB']->fetchArray($GLOBALS['APIDB']->queryF($sql));
+                
+                $data = array_merge($inner, $totals, $lestats, array('hashing' => $hashing, 'modal' => 'testing', 'typal' => 'textual', 'sessionid'=>$GLOBALS['sessionid']), array('alpha' => $ttlalpha / $ttlnums, 'gamma' => $ttlalpha / $ttlnums, 'segments' => $ttlnums));
+                $data = array($elite => $data);
+                
+                if (isset($inner['callback']) && !empty($inner['callback']))
+                {
+                    setCallBackURI($inner['callback'], 290, 290, $data);
+                };
+                if (!empty($data))
+                {
+                    @APICache::write($keyname, $data, API_CACHE_SECONDS);
+                    if (!$sessions = APICache::read('sessions-'.md5($_SERVER['HTTP_HOST'])))
+                        $sessions = array();
                     $sessions[$keyname] = time() + API_CACHE_SECONDS;
                     @APICache::write('sessions-'.md5($_SERVER['HTTP_HOST']), $sessions, API_CACHE_SECONDS * API_CACHE_SECONDS * API_CACHE_SECONDS);
-            }
-            
-            if (function_exists('mb_http_output')) {
-                mb_http_output('pass');
-            }
-            
-            switch ($state) {
-                case 'return':
-                    if (function_exists('http_response_code'))
-                        http_response_code(301);
-                        header('Location: ' . $inner['return']);
-                        exit(0);
-                        break;
-                case 'raw':
-                    header('Content-type: application/x-httpd-php');
-                    echo ('<?php'."\n\n".'return ' . var_export($data, true) . ";\n\n?>");
-                    break;
-                case 'json':
-                    header('Content-type: application/json');
-                    die(json_encode($data));
-                    break;
-                case 'serial':
-                    header('Content-type: text/plain');
-                    die(serialize($data));
-                    break;
-                case 'xml':
-                    header('Content-type: application/xml');
-                    $dom = new XmlDomConstruct('1.0', 'utf-8');
-                    $dom->fromMixed(array('root'=>$data));
-                    die($dom->saveXML());
-                    break;
-            }
-            
-            ?>		
+                }
+        }
+        
+    }
+}
+
+
+if (function_exists('http_response_code'))
+    http_response_code(200);
+
+error_reporting(0);
+if (!empty($data))
+{
+    @APICache::write($keyname, $data, API_CACHE_SECONDS);
+    if (!$sessions = APICache::read('sessions-'.md5($_SERVER['HTTP_HOST'])))
+        $sessions = array();
+    $sessions[$keyname] = time() + API_CACHE_SECONDS;
+    @APICache::write('sessions-'.md5($_SERVER['HTTP_HOST']), $sessions, API_CACHE_SECONDS * API_CACHE_SECONDS * API_CACHE_SECONDS);
+}
+
+if (function_exists('mb_http_output')) {
+    mb_http_output('pass');
+}
+
+$GLOBALS['APIDB']->queryF("COMMIT");
+
+switch ($state) {
+    case 'return':
+        if (function_exists('http_response_code'))
+            http_response_code(301);
+            header('Location: ' . $inner['return']);
+            exit(0);
+            break;
+    case 'raw':
+        header('Content-type: application/x-httpd-php');
+        echo ('<?php'."\n\n".'return ' . var_export($data, true) . ";\n\n?>");
+        break;
+    case 'json':
+        header('Content-type: application/json');
+        die(json_encode($data));
+        break;
+    case 'serial':
+        header('Content-type: text/plain');
+        die(serialize($data));
+        break;
+    case 'xml':
+        header('Content-type: application/xml');
+        $dom = new XmlDomConstruct('1.0', 'utf-8');
+        $dom->fromMixed(array('root'=>$data));
+        die($dom->saveXML());
+        break;
+}
+    

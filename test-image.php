@@ -20,9 +20,10 @@
  * @link			http://cipher.labs.coop
  */
 
-	global $peerid, $source;
+	global $sessionid, $source;
 	require_once __DIR__ . DIRECTORY_SEPARATOR . 'header.php';
 	
+	$GLOBALS['APIDB']->queryF("START TRANSACTION");
 	
 	/**
 	 * URI Path Finding of API URL Source Locality
@@ -107,7 +108,7 @@
     	if (count($errors)>0) {
     		if (function_exists('http_response_code'))
     			http_response_code(500);
-    		$data = array('state' => 'error occured', 'errors'=>$errors, 'peerid'=>$GLOBALS['peerid']);
+    		$data = array('state' => 'error occured', 'errors'=>$errors, 'sessionid'=>$GLOBALS['sessionid']);
     		header('Content-type: application/json');
     		die(json_encode($data));
     	} else {
@@ -141,7 +142,7 @@
     	                    }
     	                }
     	            }
-    	            redirect_header($inner['return'], 0, 'Error Occured!');
+    	            redirect_header($inner['return'], 0, '');
     	            break;
     	        default:
     	         
@@ -156,7 +157,7 @@
 	                if ($upload->fetchMedia('image'))
 	                {
 	                    
-	                    $sql = "INSERT INTO `" . $GLOBALS['APIDB']->prefix('jobs') . "` (`state`, `mode`, `typal`, `balance`, `hashing`, `created`, `actionable`) VALUES('queued', 'image', 'testing', 'none', '".md5_file($uploaddir . DS . $file) . "', UNIX_TIMESTAMP(), UNIX_TIMESTAMP() + " . API_DELAY_SECONDS . ")";
+	                    $sql = "INSERT INTO `" . $GLOBALS['APIDB']->prefix('jobs') . "` (`state`, `mode`, `typal`, `balance`, `hashing`, `created`, `actionable`) VALUES('queued', 'image', 'testing', 'none', '" . ($hashing = md5_file($uploaddir . DS . $file)) . "', UNIX_TIMESTAMP(), UNIX_TIMESTAMP() + " . API_DELAY_SECONDS . ")";
                         if ($GLOBALS['APIDB']->queryF($sql))
                         {
                             $jid = $GLOBALS['APIDB']->getInsertId();
@@ -201,9 +202,8 @@
                         }
 	                }
 	                
-	                
-	                
-	                
+	                $totals = $status = array();
+	                $ttlgamma = $ttlalpha = $ttlnums = 0;
 	                if (count($utf) >0)
 	                {
 	                    $ttl = count($utf);
@@ -213,99 +213,110 @@
                         foreach($utf as $key => $text)
                             if (strlen($text) < ($avg/$ttl))
                                 unset($utf[$key]);
+                        foreach($utf as $optionality => $message)
+                        {
+                            $template = file_get_contents(__DIR__ . DIRECTORY_SEPARATOR . 'data' . DIRECTORY_SEPARATOR . 'testing-template.diz');
+                            foreach(($resource = getTemplateArray($inner, $message)) as $key => $value)
+                                $template = str_replace("%key", $value, $template);
+                            $fname = API_VAR_PATH . DS . $hashing . '.' . $optionality . '.msg';
+                            writeRawFile($fname, $template);
+                            $sout = array();
+                            $rvar = false;
+                            exec(sprintf(API_SPAMTESTER, $fname), $sout, $rvar);
+                            unlink($fname);
+                            $gamma = $alpha = $nums = 0;
+                            foreach($sout as $key => $valstore)
+                            {
+                                if (strpos($valstore, "/")>0)
+                                {
+                                    $parts = explode("/", $valstore);
+                                    if (count($parts)==2&&$parts[0]!=0&&$parts[1]!=0)
+                                    {
+                                        $nums++;
+                                        $alpha = $alpha + ((float)$parts[0] * 1000 + 1);
+                                        $gamma = $gamma + ((float)$parts[1] * 1000 + 2);
+                                    }
+                                }
+                            }
+                            if ($nums>0)
+                            {
+                                $alpha = $alpha / $nums;
+                                $gamma = $gamma / $nums;
+                            }
+
+                            $ttlnums = $ttlnums + $nums;
+                            $ttlalpha = $ttlalpha + $alpha;
+                            $ttlgamma = $ttlgamma + $gamma;
+                            
+                            
+                            $sql = "SELECT max(`alpha`) as `maximum-alpha`, avg(`alpha`) as `average-alpha`, stddev(`alpha`) as `stddev-alpha`, max(`gamma`) as `maximum-gamma`, avg(`gamma`) as `average-gamma`, stddev(`gamma`) as `stddev-gamma` FROM  `" . $GLOBALS["APIDB"]->prefix("jobs") . "`";
+                            list($maxalpha, $avgalpha, $stdevalpha, $maxgamma, $avggamma, $stdevgamma) = $GLOBALS['APIDB']->fetchRow($GLOBALS['APIDB']->queryF($sql));
+                            
+                            if ($alpha==0 && $gamma == 0) {
+                                $elite = 'ham';
+                            } elseif ($maxalpha>0 && $alpha < ($avgalpha - $stdevalpha) && $maxgamma>0 && $gamma < ($avggamma - $stddevgamma) || ($alpha / $gamma / 1000 * 100) < 41) {
+                                $elite = 'ham';
+                            } elseif ($maxalpha>0 && ($ttlalpha / $ttlnums) < ($avgalpha - $stdevalpha) && $maxgamma>0 && ($ttlgamma / $ttlnums) < ($avggamma - $stddevgamma) || ($ttlalpha / $ttlgamma / 1000 * 100) < 51) {
+                                $elite = 'ham';
+                            } else {
+                                $elite = 'spam';
+                            }
+                            
+                            $status[$elite]++;
+                            
+                            $fname = API_PATH . 'scoring' . DS . 'testing' . DS . $elite . DS . 'images' . DS  . $hashing . '.' . $optionality . '.msg';
+                            writeRawFile($fname, $template);
+                                                        
+                            $fname = API_PATH . 'training' . DS . $elite . DS . 'images' . DS  . $hashing  . '.' . $optionality . '.msg';
+                            writeRawFile($fname, $template);
+                            
+                            require_once API_ROOT_PATH . DS . 'class' . DS . 'sentences.php';
+                            $sentences = new APISentences($message);
+                            
+                            $fname = API_PATH . 'scoring' . DS . 'testing' . DS . $elite . DS . 'images' . DS  . $hashing . '.' . $optionality . '.json';
+                            writeRawFile($fname, json_encode($sentences->getDumpArray()));
+                            
+                            foreach($sentences->getCountArray() as $key => $value)
+                                $total[$key] = $total[$key] + $value;
+                        }
 	                }
-	                redirect_header($inner['return'], 0, 'Error Occured!');
-            		mkdirSecure(DIR_SPAM_TESTING);
-            		$template = file_get_contents(__DIR__ . DIRECTORY_SEPARATOR . 'data' . DIRECTORY_SEPARATOR . 'testing-template.diz');
-            		foreach(($resource = getTemplateArray($inner, $output)) as $key => $value)
-            			$template = str_replace("%key", $value, $template);
-            		$fname = DIR_SPAM_TESTING . DIRECTORY_SEPARATOR . $resource['testid'] . '@' . $resource['apidomain'] . '.msg';
-            		writeRawFile($fname, $template);
-            		
-            		$sout = array();
-            		$rvar = false;
-            		exec(sprintf(API_SPAMTESTER, $fname), $sout, $rvar);
-            		unlink($fname);
-            		$beta = $alpha = $nums = 0;
-            		foreach($sout as $key => $valstore)
-            		{
-            			if (strpos($valstore, "/")>0)
-            			{
-            				$parts = explode("/", $valstore);
-            				if (count($parts)==2&&$parts[0]!=0&&$parts[1]!=0)
-            				{
-            					$nums++;
-            					$alpha = $alpha + ((float)$parts[0] * 1000 + 1);
-            					$beta = $beta + ((float)$parts[1] * 1000 + 2);
-            				}
-            			}
-            		}
-            		if ($nums>0)
-            		{
-            			$alpha = $alpha / $nums;
-            			$beta = $beta / $nums;
-            		}
-            		
-            		$sql = "UPDATE `tests` SET `score-alpha` = '%s', `score-beta` = '%s' WHERE `testid` LIKE '%s'";
-            		$GLOBALS['WammyDB']->queryF($sql = sprintf($sql, $alpha, $beta, $resource['testid']));
-            		$sql = "UPDATE `users` SET `score-alpha` = `score-alpha` + '%s' / 2, `score-beta` = `score-beta` + '%s' / 2 WHERE `userid` LIKE '%s'";
-            		$GLOBALS['WammyDB']->queryF($sql = sprintf($sql, $alpha, $beta, $resource['sender-userid']));
-            		$sql = "UPDATE `users` SET `score-alpha` = `score-alpha` + '%s' / 2, `score-beta` = `score-beta` + '%s' / 2 WHERE `userid` LIKE '%s'";
-            		$GLOBALS['WammyDB']->queryF($sql = sprintf($sql, $alpha, $beta, $resource['recipient-userid']));
-            		$sql = "SELECT max(`score-alpha`) as `maximum-alpha`, avg(`score-alpha`) as `average-alpha`, stddev(`score-alpha`) as `stddev-alpha`, max(`score-beta`) as `maximum-beta`, avg(`score-beta`) as `average-beta`, stddev(`score-beta`) as `stddev-beta` FROM  `tests`";
-            		if (!$data = $GLOBALS['WammyDB']->fetchArray($GLOBALS['WammyDB']->queryF($sql)))
-            			die("SQL Failed: $sql;");
-            		if ($alpha==0 && $beta == 0) {
-            			$data['result'] = 'ham';
-            		} elseif ($data['maximum-alpha']>0 && $alpha < ($data['average-alpha'] - $data['stddev-alpha']) && $data['maximum-beta']>0 && $beta < ($data['average-beta'] - $data['stddev-beta']) || ($alpha / $beta / 1000 * 100) < 41) {
-            			$data['result'] = 'ham';
-            		} else {
-            			$data['result'] = 'spam';
-            		}
-            		
-            		$update = array();
-            		foreach($data as $key => $value)
-            			$update[] = "`$key` = \"" . mysql_real_escape_string($value) . "\"";
-            		$sql = "UPDATE `tests` SET " . implode(", ", $update) . " WHERE `testid` LIKE '%s'";
-            		$GLOBALS['WammyDB']->queryF($sql = sprintf($sql, $resource['testid']));
-            		
-            		$template = file_get_contents(__DIR__ . DIRECTORY_SEPARATOR . 'data' . DIRECTORY_SEPARATOR . 'training-template.diz');
-            		foreach($resource as $key => $value)
-            			$template = str_replace("%key", $value, $template);
-            		$fname = constant("DIR_TRAINING_".strtoupper($data['result'])) . DIRECTORY_SEPARATOR . $resource['testid'] . '@' . $resource['apidomain'] . '.msg';
-            		mkdirSecure(constant("DIR_TRAINING_".strtoupper($data['result'])));
-            		writeRawFile($fname, $template);
-            		
-            		$data['score-alpha'] = $alpha;
-            		$data['score-beta'] = $beta;
-            		if ($beta != 0 && $alpha < $beta)
-            			$data['score-percentile'] = (float)$alpha / $beta * 100;
-            		elseif ($alpha != 0 && $alpha > $beta)
-            			$data['score-percentile'] = (float)$beta / $alpha * 100;
-            		else 
-            			$data['score-percentile'] = 100;
-            		
-            		if (isset($inner['callback']) && !empty($inner['callback']))
-            		{
-            			$fname = DIR_TRAINING_DATA . DIRECTORY_SEPARATOR . $resource['testid'] . '@' . $resource['apidomain'] . '.json';
-            			mkdirSecure(DIR_TRAINING_DATA);
-            			writeRawFile($fname, json_encode(array('request'=>$inner, 'data'=>$data, 'peerid'=>$GLOBALS['peerid'])));
-            		}
-            		
-            		$sql = "SELECT * FROM `peers` WHERE `peerid` NOT LIKE '%s' and `polinating` = 'Yes'";
-            		$results = $GLOBALS['WammyDB']->queryF(sprintf($sql, mysql_real_escape_string($GLOBALS['peerid'])));
-            		while($peer = $GLOBALS['WammyDB']->fetchArray($results))
-            		{
-            			if (!empty($peer['api-uri-'.$data['result']]))
-            				setCallBackURI($peer['api-uri-'.$data['result']], 290, 290, array_merge($inner, array('peerid'=>$GLOBALS['peerid'])));
-            		}
-            		break;
+	                
+	                if ($status['spam'] > $status['ham'])
+	                    $elite = 'spam';
+                    elseif ($status['spam'] <= $status['ham'])
+                        $elite = 'ham';
+                    
+	                foreach($totals as $ikey => $value)
+	                    if (!$GLOBALS['APIDB']->queryF($sql = "UPDATE `" . $GLOBALS['APIDB']->prefix('jobs') . "` SET `$ikey` = '" . (is_numeric($value) ? floor( $value / ( count($utf) ) ) : mysqli_real_escape_string($GLOBALS['APIDB']->conn, $value) ) . " WHERE `jid` = '$jid'" ))
+	                        die("SQL Failed: $sql;");
+	       
+	                if (!$GLOBALS['APIDB']->queryF($sql = "UPDATE `" . $GLOBALS['APIDB']->prefix('jobs') . "` SET `updated` = UNIX_TIMESTAMP() WHERE `jid` = '$jid'"))
+	                    die("SQL Failed: $sql;");
+	                
+	                foreach($totals as $ikey => $value)
+	                    $totals[$ikey] = (is_numeric($value) ? floor( $value / ( count($utf) ) ) : $value );
+                    
+	                $sql = "SELECT max(`alpha`) as `maximum-alpha`, avg(`alpha`) as `average-alpha`, stddev(`alpha`) as `stddev-alpha`, max(`gamma`) as `maximum-gamma`, avg(`gamma`) as `average-gamma`, stddev(`gamma`) as `stddev-gamma` FROM  `" . $GLOBALS["APIDB"]->prefix("jobs") . "`";
+                    $lestats = $GLOBALS['APIDB']->fetchArray($GLOBALS['APIDB']->queryF($sql));
+                    
+                    $data = array_merge($inner, $totals, $lestats, array('hashing' => $hashing, 'modal' => 'testing', 'typal' => 'image', 'sessionid'=>$GLOBALS['sessionid']), array('alpha' => $ttlalpha / $ttlnums, 'gamma' => $ttlalpha / $ttlnums, 'segments' => $ttlnums));
+                    $data = array($elite => $data);
+                    
+	                if (isset($inner['callback']) && !empty($inner['callback']))
+	                {
+	                    setCallBackURI($inner['callback'], 290, 290, $data);
+	                };
+	                if (!empty($data))
+	                {
+	                    @APICache::write($keyname, $data, API_CACHE_SECONDS);
+	                    if (!$sessions = APICache::read('sessions-'.md5($_SERVER['HTTP_HOST'])))
+	                        $sessions = array();
+                        $sessions[$keyname] = time() + API_CACHE_SECONDS;
+                        @APICache::write('sessions-'.md5($_SERVER['HTTP_HOST']), $sessions, API_CACHE_SECONDS * API_CACHE_SECONDS * API_CACHE_SECONDS);
+	                }
     	    }
     		
     	}
-    	
-    	if (isset($inner['callback']) && !empty($inner['callback']))
-    		setCallBackURI($inner['callback'], 290, 290, array_merge($inner, $data, array('peerid'=>$GLOBALS['peerid']), $resource));
     }
     
     
@@ -318,14 +329,16 @@
         @APICache::write($keyname, $data, API_CACHE_SECONDS);
         if (!$sessions = APICache::read('sessions-'.md5($_SERVER['HTTP_HOST'])))
             $sessions = array();
-            $sessions[$keyname] = time() + API_CACHE_SECONDS;
-            @APICache::write('sessions-'.md5($_SERVER['HTTP_HOST']), $sessions, API_CACHE_SECONDS * API_CACHE_SECONDS * API_CACHE_SECONDS);
+        $sessions[$keyname] = time() + API_CACHE_SECONDS;
+        @APICache::write('sessions-'.md5($_SERVER['HTTP_HOST']), $sessions, API_CACHE_SECONDS * API_CACHE_SECONDS * API_CACHE_SECONDS);
     }
     
     if (function_exists('mb_http_output')) {
         mb_http_output('pass');
     }
     
+    $GLOBALS['APIDB']->queryF("COMMIT");
+	
 	switch ($state) {
 		case 'return':
 			if (function_exists('http_response_code'))
@@ -353,4 +366,3 @@
 			break;
 	}
 	
-?>		
