@@ -41,4 +41,4 @@ sleep($seconds);
 include_once dirname(__DIR__).'/mainfile.php';
 include_once dirname(__DIR__).'/apiconfig.php';
 
-shell_exec(sprintf(API_SPAMTRAINING_FORGET, API_VAR_PATH . DS . 'training' . DS . 'forgot' . DS . 'textual'));
+shell_exec(sprintf(API_SPAMTRAINING_FORGET, API_PATH . DS . 'training' . DS . 'forgot' . DS . 'textual'));
