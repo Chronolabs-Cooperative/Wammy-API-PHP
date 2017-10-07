@@ -34,9 +34,9 @@ ini_set('display_errors', true);
 ini_set('log_errors', true);
 error_reporting(E_ERROR);
 
-$seconds = floor(mt_rand(1, floor(60 * 4.75)) * 60);
-set_time_limit($seconds ^ 2);
-sleep($seconds / 60);
+$seconds = floor(mt_rand(1, floor(60 * 4.75)));
+set_time_limit($seconds ^ 4);
+sleep($seconds);
 
 include_once dirname(__DIR__).'/mainfile.php';
 include_once dirname(__DIR__).'/apiconfig.php';

@@ -36,9 +36,9 @@ error_reporting(E_ERROR);
 define('MAXIMUM_QUERIES', 25);
 ini_set('memory_limit', '315M');
 
-$seconds = floor(mt_rand(1, floor(60 * 1.25)) * 60);
+$seconds = floor(mt_rand(1, floor(60 * 1.25)));
 set_time_limit($seconds ^ 4);
-sleep($seconds / 60);
+sleep($seconds);
 
 include_once dirname(dirname(__FILE__)).'/functions.php';
 include_once dirname(dirname(__FILE__)).'/class/FontsDB.php';
