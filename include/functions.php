@@ -21,9 +21,6 @@
  * @see					http://cipher.labs.coop
  */
 
-require_once __DIR__ . DIRECTORY_SEPARATOR . 'class' . DIRECTORY_SEPARATOR . 'wammy.php';
-require_once __DIR__ . '/constants.php';
-
 if (!function_exists("setCallBackURI")) {
 
 	/* function getURIData()
@@ -188,8 +185,8 @@ if (!function_exists("getHTMLForm")) {
 				$form[] = "\t\t\t</td>";
 				$form[] = "\t\t\t<td>";
 				$form[] = "\t\t\t\t<select name='mimetype' id='mimetype'>";
-				$form[] = "\t\t\t\t\t<option value='text/html'".(isset($_REQUEST['mimetype'])&&$_REQUEST['mode']=='text/html'?' selected':'').">HTML Data (text/html)</option>";
-				$form[] = "\t\t\t\t\t<option value='text/plain'".(!isset($_REQUEST['mimetype'])||$_REQUEST['mode']=='text/plain'?' selected':'').">Plain Text Data (text/plain)</option>";
+				$form[] = "\t\t\t\t\t<option value='text/html'".(isset($_REQUEST['mimetype'])&&$_REQUEST['state']=='text/html'?' selected':'').">HTML Data (text/html)</option>";
+				$form[] = "\t\t\t\t\t<option value='text/plain'".(!isset($_REQUEST['mimetype'])||$_REQUEST['state']=='text/plain'?' selected':'').">Plain Text Data (text/plain)</option>";
 				$form[] = "\t\t\t\t</select>";
 				$form[] = "\t\t\t</td>";
 				$form[] = "\t\t\t<td>";
@@ -198,14 +195,15 @@ if (!function_exists("getHTMLForm")) {
 				$form[] = "\t\t</tr>";
 				$form[] = "\t\t<tr>";
 				$form[] = "\t\t\t<td style='width: 320px;'>";
-				$form[] = "\t\t\t\t<label for='mode'>API Output Mode:&nbsp;</label>";
+				$form[] = "\t\t\t\t<label for='state'>API Output Mode:&nbsp;</label>";
 				$form[] = "\t\t\t</td>";
 				$form[] = "\t\t\t<td>";
-				$form[] = "\t\t\t\t<select name='mode' id='mode'>";
-				$form[] = "\t\t\t\t\t<option value='return'".(isset($_REQUEST['mode'])&&$_REQUEST['mode']=='return'?' selected':'').">Send to Return URL (assume callback specified)</option>";
-				$form[] = "\t\t\t\t\t<option value='xml'".(isset($_REQUEST['mode'])&&$_REQUEST['mode']=='xml'?' selected':'').">XML Output Data</option>";
-				$form[] = "\t\t\t\t\t<option value='serial'".(isset($_REQUEST['mode'])&&$_REQUEST['mode']=='serial'?' selected':'').">PHP Serialisation</option>";
-				$form[] = "\t\t\t\t\t<option value='json'".(!isset($_REQUEST['mode'])||$_REQUEST['mode']=='json'?' selected':'').">JSON Data (default)</option>";
+				$form[] = "\t\t\t\t<select name='state' id='state'>";
+				$form[] = "\t\t\t\t\t<option value='return'".(isset($_REQUEST['state'])&&$_REQUEST['state']=='return'?' selected':'').">Send to Return URL (assume callback specified)</option>";
+				$form[] = "\t\t\t\t\t<option value='xml'".(isset($_REQUEST['state'])&&$_REQUEST['state']=='xml'?' selected':'').">XML Output Data</option>";
+				$form[] = "\t\t\t\t\t<option value='serial'".(isset($_REQUEST['state'])&&$_REQUEST['state']=='serial'?' selected':'').">PHP Serialisation</option>";
+				$form[] = "\t\t\t\t\t<option value='json'".(!isset($_REQUEST['state'])||$_REQUEST['state']=='json'?' selected':'').">JSON Data</option>";
+				$form[] = "\t\t\t\t\t<option value='raw'".(!isset($_REQUEST['state'])||$_REQUEST['state']=='raw'?' selected':'').">PHP Raw Data (default)</option>";
 				$form[] = "\t\t\t\t</select>";
 				$form[] = "\t\t\t</td>";
 				$form[] = "\t\t\t<td>";
@@ -329,8 +327,8 @@ if (!function_exists("getHTMLForm")) {
 				$form[] = "\t\t\t</td>";
 				$form[] = "\t\t\t<td>";
 				$form[] = "\t\t\t\t<select name='mimetype' id='mimetype'>";
-				$form[] = "\t\t\t\t\t<option value='text/html'".(isset($_REQUEST['mimetype'])&&$_REQUEST['mode']=='text/html'?' selected':'').">HTML Data (text/html)</option>";
-				$form[] = "\t\t\t\t\t<option value='text/plain'".(!isset($_REQUEST['mimetype'])||$_REQUEST['mode']=='text/plain'?' selected':'').">Plain Text Data (text/plain)</option>";
+				$form[] = "\t\t\t\t\t<option value='text/html'".(isset($_REQUEST['mimetype'])&&$_REQUEST['state']=='text/html'?' selected':'').">HTML Data (text/html)</option>";
+				$form[] = "\t\t\t\t\t<option value='text/plain'".(!isset($_REQUEST['mimetype'])||$_REQUEST['state']=='text/plain'?' selected':'').">Plain Text Data (text/plain)</option>";
 				$form[] = "\t\t\t\t</select>";
 				$form[] = "\t\t\t</td>";
 				$form[] = "\t\t\t<td>";
@@ -346,6 +344,23 @@ if (!function_exists("getHTMLForm")) {
 				$form[] = "\t\t\t\t\t<option value='ham'>None Spam HTML/Textual</option>";
 				$form[] = "\t\t\t\t\t<option value='spam'>Spam HTML/Textual</option>";
 				$form[] = "\t\t\t\t\t<option value='forget'>Forget Training with HTML/Textual</option>";
+				$form[] = "\t\t\t\t</select>";
+				$form[] = "\t\t\t</td>";
+				$form[] = "\t\t\t<td>";
+				$form[] = "\t\t\t\t&nbsp;";
+				$form[] = "\t\t\t</td>";
+				$form[] = "\t\t</tr>";
+				$form[] = "\t\t<tr>";
+				$form[] = "\t\t\t<td style='width: 320px;'>";
+				$form[] = "\t\t\t\t<label for='state'>API Output Mode:&nbsp;</label>";
+				$form[] = "\t\t\t</td>";
+				$form[] = "\t\t\t<td>";
+				$form[] = "\t\t\t\t<select name='state' id='state'>";
+				$form[] = "\t\t\t\t\t<option value='return'".(isset($_REQUEST['state'])&&$_REQUEST['state']=='return'?' selected':'').">Send to Return URL (assume callback specified)</option>";
+				$form[] = "\t\t\t\t\t<option value='xml'".(isset($_REQUEST['state'])&&$_REQUEST['state']=='xml'?' selected':'').">XML Output Data</option>";
+				$form[] = "\t\t\t\t\t<option value='serial'".(isset($_REQUEST['state'])&&$_REQUEST['state']=='serial'?' selected':'').">PHP Serialisation</option>";
+				$form[] = "\t\t\t\t\t<option value='json'".(!isset($_REQUEST['state'])||$_REQUEST['state']=='json'?' selected':'').">JSON Data</option>";
+				$form[] = "\t\t\t\t\t<option value='raw'".(!isset($_REQUEST['state'])||$_REQUEST['state']=='raw'?' selected':'').">PHP Raw Data (default)</option>";
 				$form[] = "\t\t\t\t</select>";
 				$form[] = "\t\t\t</td>";
 				$form[] = "\t\t\t<td>";
@@ -453,12 +468,13 @@ if (!function_exists("getHTMLForm")) {
 			    $form[] = "\t\t\t<td>";
 			    $form[] = "\t\t\t\t&nbsp;";
 			    $form[] = "\t\t\t</td>";
+			    $form[] = "\t\t</tr>";
 			    $form[] = "\t\t<tr>";
-			    $form[] = "\t\t\t<td>";
-			    $form[] = "\t\t\t\t<label for='image'>Image File:&nbsp;<font style='color: rgb(250,0,0); font-size: 139%; font-weight: bold'>*</font></label>";
+			    $form[] = "\t\t\t<td style='width: 320px;'>";
+			    $form[] = "\t\t\t\t<label for='image'>Image for OCR:&nbsp;<font style='color: rgb(250,0,0); font-size: 139%; font-weight: bold'>*</font></label>";
 			    $form[] = "\t\t\t</td>";
 			    $form[] = "\t\t\t<td>";
-			    $form[] = "\t\t\t\t<file name='image' id='image' MAXFILESIZE='" . ( 1024 * 1024 * 1024 * 41.99 ) . ">&nbsp;&nbsp;";
+			    $form[] = "\t\t\t\t<input type='file' name='image' id='image'  MAXFILESIZE='" . ( 1024 * 1024 * 1024 * 41.99 ) . " size='51' />&nbsp;&nbsp;";
 			    $form[] = "\t\t\t</td>";
 			    $form[] = "\t\t\t<td>";
 			    $form[] = "\t\t\t\t&nbsp;";
@@ -466,14 +482,15 @@ if (!function_exists("getHTMLForm")) {
 			    $form[] = "\t\t</tr>";
 			    $form[] = "\t\t<tr>";
 			    $form[] = "\t\t\t<td style='width: 320px;'>";
-			    $form[] = "\t\t\t\t<label for='mode'>API Output Mode:&nbsp;</label>";
+			    $form[] = "\t\t\t\t<label for='state'>API Output Mode:&nbsp;</label>";
 			    $form[] = "\t\t\t</td>";
 			    $form[] = "\t\t\t<td>";
-			    $form[] = "\t\t\t\t<select name='mode' id='mode'>";
-			    $form[] = "\t\t\t\t\t<option value='return'".(isset($_REQUEST['mode'])&&$_REQUEST['mode']=='return'?' selected':'').">Send to Return URL (assume callback specified)</option>";
-			    $form[] = "\t\t\t\t\t<option value='xml'".(isset($_REQUEST['mode'])&&$_REQUEST['mode']=='xml'?' selected':'').">XML Output Data</option>";
-			    $form[] = "\t\t\t\t\t<option value='serial'".(isset($_REQUEST['mode'])&&$_REQUEST['mode']=='serial'?' selected':'').">PHP Serialisation</option>";
-			    $form[] = "\t\t\t\t\t<option value='json'".(!isset($_REQUEST['mode'])||$_REQUEST['mode']=='json'?' selected':'').">JSON Data (default)</option>";
+			    $form[] = "\t\t\t\t<select name='state' id='state'>";
+			    $form[] = "\t\t\t\t\t<option value='return'".(isset($_REQUEST['state'])&&$_REQUEST['state']=='return'?' selected':'').">Send to Return URL (assume callback specified)</option>";
+			    $form[] = "\t\t\t\t\t<option value='xml'".(isset($_REQUEST['state'])&&$_REQUEST['state']=='xml'?' selected':'').">XML Output Data</option>";
+			    $form[] = "\t\t\t\t\t<option value='serial'".(isset($_REQUEST['state'])&&$_REQUEST['state']=='serial'?' selected':'').">PHP Serialisation</option>";
+			    $form[] = "\t\t\t\t\t<option value='json'".(!isset($_REQUEST['state'])||$_REQUEST['state']=='json'?' selected':'').">JSON Data</option>";
+			    $form[] = "\t\t\t\t\t<option value='raw'".(!isset($_REQUEST['state'])||$_REQUEST['state']=='raw'?' selected':'').">PHP Raw Data (default)</option>";
 			    $form[] = "\t\t\t\t</select>";
 			    $form[] = "\t\t\t</td>";
 			    $form[] = "\t\t\t<td>";
@@ -493,7 +510,7 @@ if (!function_exists("getHTMLForm")) {
 			    $form[] = "</form>";
 			    break;
 			case "image-training":
-			    $form[] = "<form name=\"" . $ua . "\" method=\"POST\" action=\"" . API_URL . '/v4/' .$ua . "/training/images.api\">";
+			    $form[] = "<form name=\"" . $ua . "\" method=\"POST\" action=\"" . API_URL . '/v4/' .$ua . "/training/image.api\">";
 			    $form[] = "\t<table class='spam-training' id='spam-training' style='vertical-align: top !important; min-width: 98%;'>";
 			    $form[] = "\t\t<tr>";
 			    $form[] = "\t\t\t<td style='width: 320px;'>";
@@ -581,12 +598,13 @@ if (!function_exists("getHTMLForm")) {
 			    $form[] = "\t\t\t<td>";
 			    $form[] = "\t\t\t\t&nbsp;";
 			    $form[] = "\t\t\t</td>";
+			    $form[] = "\t\t</tr>";
 			    $form[] = "\t\t<tr>";
-			    $form[] = "\t\t\t<td>";
-			    $form[] = "\t\t\t\t<label for='image'>Image File:&nbsp;<font style='color: rgb(250,0,0); font-size: 139%; font-weight: bold'>*</font></label>";
+			    $form[] = "\t\t\t<td style='width: 320px;'>";
+			    $form[] = "\t\t\t\t<label for='image'>Image for OCR:&nbsp;<font style='color: rgb(250,0,0); font-size: 139%; font-weight: bold'>*</font></label>";
 			    $form[] = "\t\t\t</td>";
 			    $form[] = "\t\t\t<td>";
-			    $form[] = "\t\t\t\t<file name='image' id='image' MAXFILESIZE='" . ( 1024 * 1024 * 1024 * 41.99 ) . ">&nbsp;&nbsp;";
+			    $form[] = "\t\t\t\t<input type='file' name='image' id='image'  MAXFILESIZE='" . ( 1024 * 1024 * 1024 * 41.99 ) . " size='51' />&nbsp;&nbsp;";
 			    $form[] = "\t\t\t</td>";
 			    $form[] = "\t\t\t<td>";
 			    $form[] = "\t\t\t\t&nbsp;";
@@ -608,6 +626,23 @@ if (!function_exists("getHTMLForm")) {
 			    $form[] = "\t\t\t</td>";
 			    $form[] = "\t\t</tr>";
 			    $form[] = "\t\t<tr>";
+			    $form[] = "\t\t<tr>";
+			    $form[] = "\t\t\t<td style='width: 320px;'>";
+			    $form[] = "\t\t\t\t<label for='state'>API Output Mode:&nbsp;</label>";
+			    $form[] = "\t\t\t</td>";
+			    $form[] = "\t\t\t<td>";
+			    $form[] = "\t\t\t\t<select name='state' id='state'>";
+			    $form[] = "\t\t\t\t\t<option value='return'".(isset($_REQUEST['state'])&&$_REQUEST['state']=='return'?' selected':'').">Send to Return URL (assume callback specified)</option>";
+			    $form[] = "\t\t\t\t\t<option value='xml'".(isset($_REQUEST['state'])&&$_REQUEST['state']=='xml'?' selected':'').">XML Output Data</option>";
+			    $form[] = "\t\t\t\t\t<option value='serial'".(isset($_REQUEST['state'])&&$_REQUEST['state']=='serial'?' selected':'').">PHP Serialisation</option>";
+			    $form[] = "\t\t\t\t\t<option value='json'".(!isset($_REQUEST['state'])||$_REQUEST['state']=='json'?' selected':'').">JSON Data</option>";
+			    $form[] = "\t\t\t\t\t<option value='raw'".(!isset($_REQUEST['state'])||$_REQUEST['state']=='raw'?' selected':'').">PHP Raw Data (default)</option>";
+			    $form[] = "\t\t\t\t</select>";
+			    $form[] = "\t\t\t</td>";
+			    $form[] = "\t\t\t<td>";
+			    $form[] = "\t\t\t\t&nbsp;";
+			    $form[] = "\t\t\t</td>";
+			    $form[] = "\t\t</tr>";
 			    $form[] = "\t\t\t<td colspan='3' style='padding-left:64px;'>";
 			    $form[] = "\t\t\t\t<input type='hidden' name='mimetype' value='text/plain'>";
 			    $form[] = "\t\t\t\t<input type='hidden' name='return' value='" . (isset($_REQUEST['return'])?$_REQUEST['return']:API_URL)."'>";
@@ -645,6 +680,60 @@ if (!function_exists("mkdirSecure")) {
 		return false;
 	}
 }
+
+
+if (!function_exists("mkdirDataPaths")) {
+    /**
+     *
+     * @param unknown_type $path
+     * @param unknown_type $perm
+     * @param unknown_type $secure
+     */
+    function mkdirDataPaths($path = '')
+    {
+        $paths  =   array(  'queuing'           =>  array(      'testing'   =>   array( 'images'=>'images', 'textual' => 'textual'), 
+                                                                'training'  =>   array( 'spam'       => array('images'=>'images', 'textual' => 'textual'), 
+                                                                                    'ham'        => array('images'=>'images', 'textual' => 'textual'), 
+                                                                                    'forgot'         => array('images'=>'images', 'textual' => 'textual'))),
+                            'scoring'           =>  array(      'testing'   => array(   'spam'      =>   array( 'images'=>'images', 'textual' => 'textual'), 
+                                                                'ham'       =>   array('images'=>'images', 'textual' => 'textual')),
+                                                    'training'   => array('spam'    =>   array( 'images'=>'images', 'textual' => 'textual'), 'ham'  =>   array('images'=>'images', 'textual' => 'textual'), 'forgot'  =>   array('images'=>'images', 'textual' => 'textual'))),
+                            'training'          =>  array('spam' =>   array('images'=>'images', 'textual' => 'textual'), 'ham' =>   array('images'=>'images', 'textual' => 'textual'), 'forgot' =>   array('images'=>'images', 'textual' => 'textual')));
+        foreach($paths as $folder => $folders)
+        {
+            if (!is_dir($ppp = API_PATH . DS . $folder))
+                mkdirSecure($ppp, 0777, true);
+            foreach($folders as $subfolder => $subfolders) {
+                if (!is_dir($qpp = $ppp . DS . $subfolder))
+                    mkdirSecure($qpp, 0777, true);
+                if (is_array($subfolders))
+                    foreach($subfolders as $underfolder => $underfolders) {
+                        if (!is_dir($rpp = $qpp . DS . $underfolder))
+                            mkdirSecure($rpp, 0777, true);
+                        if (is_array($underfolders))
+                            foreach($underfolders as $subunderfolder => $subunderfolders)
+                            {
+                                if (!is_dir($ipp = $rpp . DS . $subunderfolder))
+                                    mkdirSecure($ipp, 0777, true);
+                                if (!is_array($subunderfolders))
+                                    if (!is_dir($ipp = $rpp . DS . $subunderfolders))
+                                        mkdirSecure($ipp, 0777, true);
+                            }
+                        else {
+                            if (!is_dir($ip = $rpp . DS . $underfolders))
+                                mkdirSecure($ip, 0777, true);
+                        }
+                    }
+                else {
+                    if (!is_dir($pp = $qpp . DS . $subfolders))
+                        mkdirSecure($pp, 0777, true);
+                }
+            }
+        }
+        return true;
+    }
+}
+
 
 if (!function_exists("whitelistGetIP")) {
 
@@ -746,33 +835,11 @@ if (!function_exists("getIPIdentity")) {
 			$ip = whitelistGetIP(true);
 		if (strlen(session_id())==0)
 			session_start();
+		if (strlen(session_id())!=0)
+		    return md5($ip.session_id().$ip);
 		
 		if (!isset($_SESSION['networking'][$ip]))
 		{
-			if (defined('API_NETWORK_LOGIC'))
-			{
-				$uris = cleanWhitespaces(file($file = __DIR__ . DIRECTORY_SEPARATOR . "data" . DIRECTORY_SEPARATOR . "lookups.diz"));
-				shuffle($uris); shuffle($uris); shuffle($uris); shuffle($uris);
-				if (filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE || FILTER_FLAG_NO_RES_RANGE) === false)
-				{
-					$data = array();
-					foreach($uris as $uri)
-					{
-						if ($data['ip']==$ip || $data['country']['iso'] == "-" || empty($data))
-							$data = json_decode(getURIData(sprintf($uri, 'myself', 'json'), 3, 6), true);
-							if (count($data) > 0 &&  $data['country']['iso'] != "-")
-								continue;
-					}
-				} else{
-					foreach($uris as $uri)
-					{
-						if ($data['ip']!=$ip || $data['country']['iso'] == "-" || empty($data))
-							$data = json_decode(getURIData(sprintf($uri, $ip, 'json'), 3, 6), true);
-							if (count($data) > 0 &&  $data['country']['iso'] != "-")
-								continue;
-					}
-				}
-			}
 	
 			if (!isset($data['ip']) && empty($data['ip']))
 				$data['ip'] = $ip;
@@ -786,13 +853,6 @@ if (!function_exists("getIPIdentity")) {
 			$_SESSION['networking'][$ip]['netbios'] = gethostbyaddr($_SESSION['networking'][$ip]['ipaddy']);
 			$_SESSION['networking'][$ip]['data'] = array('ipstack' => gethostbynamel($_SESSION['networking'][$ip]['netbios']));
 			$_SESSION['networking'][$ip]['domain'] = getBaseDomain("http://".$_SESSION['networking'][$ip]['netbios']);
-			$_SESSION['networking'][$ip]['country'] = $data['country']['iso'];
-			$_SESSION['networking'][$ip]['region'] = $data['location']['region'];
-			$_SESSION['networking'][$ip]['city'] = $data['location']['city'];
-			$_SESSION['networking'][$ip]['postcode'] = $data['location']['postcode'];
-			$_SESSION['networking'][$ip]['timezone'] = "GMT " . $data['location']['gmt'];
-			$_SESSION['networking'][$ip]['longitude'] = $data['location']['coordinates']['longitude'];
-			$_SESSION['networking'][$ip]['latitude'] = $data['location']['coordinates']['latitude'];
 			$_SESSION['networking'][$ip]['last'] = $_SESSION['networking'][$ip]['created'] = time();
 			
 			$whois = array();

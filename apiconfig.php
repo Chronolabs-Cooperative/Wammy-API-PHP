@@ -21,22 +21,30 @@
  * @see					http://cipher.labs.coop
  */
 
+    // Linguistic Engines Factory Definition
 	define("API_SPAMAPP", "spamassassin");
 	define("API_SPAMTESTER", "/usr/bin/spamc --full < \"%s\"");
 	define("API_SPAMTRAINING_HAM", "/usr/bin/sa-learn --ham --sync --folders='%s'");
 	define("API_SPAMTRAINING_SPAM", "/usr/bin/sa-learn --spam --sync --folders='%s'");
 	define("API_SPAMTRAINING_FORGET", "/usr/bin/sa-learn --forget --sync --folders='%s'");
 
-	// Image Functions
+	// Image Functions Factory Definition
 	define("API_IMAGE_CONVERT_JPG", "/usr/bin/convert -antialias -flatten -auto-gamma -auto-level -auto-orient \"%s\"  \"%s.normal.jpg\"");
 	define("API_IMAGE_CONTRAST_JPG", "/usr/bin/convert -contrast -antialias -flatten -auto-gamma -auto-level -auto-orient \"%s\"  \"%s.contrast.jpg\"");
 	define("API_IMAGE_TINTRED_JPG", "/usr/bin/convert -tint red -antialias -flatten -auto-gamma -auto-level -auto-orient \"%s\"  \"%s.red.jpg\"");
 	define("API_IMAGE_TINTBLUE_JPG", "/usr/bin/convert -tint blue -antialias -flatten -auto-gamma -auto-level -auto-orient \"%s\"  \"%s.blue.jpg\"");
 	define("API_IMAGE_TINTGREEN_JPG", "/usr/bin/convert -tint green -antialias -flatten -auto-gamma -auto-level -auto-orient \"%s\"  \"%s.green.jpg\"");
 	define("API_IMAGE_TINTGREY_JPG", "/usr/bin/convert -tint grey -antialias -flatten -auto-gamma -auto-level -auto-orient \"%s\"  \"%s.grey.jpg\"");
+	define("API_IMAGE_TINTPURPLE_JPG", "/usr/bin/convert -tint purple -antialias -flatten -auto-gamma -auto-level -auto-orient \"%s\"  \"%s.purple.jpg\"");
+	define("API_IMAGE_TINTORANGE_JPG", "/usr/bin/convert -tint orange -antialias -flatten -auto-gamma -auto-level -auto-orient \"%s\"  \"%s.orange.jpg\"");
+	define("API_IMAGE_TINTPINK_JPG", "/usr/bin/convert -tint pink -antialias -flatten -auto-gamma -auto-level -auto-orient \"%s\"  \"%s.pink.jpg\"");
+	define("API_IMAGE_TINTYELLOW_JPG", "/usr/bin/convert -tint yellow -antialias -flatten -auto-gamma -auto-level -auto-orient \"%s\"  \"%s.yellow.jpg\"");
+	define("API_IMAGE_TINTBROWN_JPG", "/usr/bin/convert -tint brown -antialias -flatten -auto-gamma -auto-level -auto-orient \"%s\"  \"%s.brown.jpg\"");
+	define("API_IMAGE_TINTCYAN_JPG", "/usr/bin/convert -tint cyan -antialias -flatten -auto-gamma -auto-level -auto-orient \"%s\"  \"%s.cyan.jpg\"");
+	define("API_IMAGE_TINTWHITE_JPG", "/usr/bin/convert -tint white -antialias -flatten -auto-gamma -auto-level -auto-orient \"%s\"  \"%s.white.jpg\"");
 	define("API_IMAGE_TINTBLACK_JPG", "/usr/bin/convert -tint black -antialias -flatten -auto-gamma -auto-level -auto-orient \"%s\"  \"%s.black.jpg\"");
 	define("API_IMAGE_JPGTOPNM", "/usr/bin/jpegtopnm \"%s\"  \"%s.pnm\"");
-	define("API_IMAGE_OCR", "/usr/bin/gocr -i \"%s\" -f UTF8");
+	define("API_IMAGE_OCR", "/usr/bin/gocr -i \"%s.pnm\" -f UTF8");
 	
 	if (!is_file(__DIR__ . DIRECTORY_SEPARATOR . 'mainfile.php') || !is_file(__DIR__ . DIRECTORY_SEPARATOR . 'include' . DIRECTORY_SEPARATOR . 'license.php'))
 	{
@@ -47,4 +55,5 @@
 	require_once __DIR__ . DIRECTORY_SEPARATOR . 'constants.php';
 	require_once __DIR__ . DIRECTORY_SEPARATOR . 'mainfile.php';
 	
+	$GLOBALS['apiLogger']->startTime('API Functioning');
 ?>

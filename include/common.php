@@ -63,3 +63,6 @@ include_once API_ROOT_PATH . DS . 'include' . DS . 'functions.php';
 require_once API_ROOT_PATH . DS . 'include' . DS . 'dbconfig.php';
 require_once API_ROOT_PATH . DS . 'class' . DS . 'database' . DS . 'databasefactory.php';
 $GLOBALS['APIDB'] = APIDatabaseFactory::getDatabaseConnection();
+
+@mkdirDataPaths(API_PATH);
+$apiLogger->stopTime('XOOPS Boot');

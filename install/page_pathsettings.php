@@ -29,7 +29,7 @@ require_once './include/common.inc.php';
 defined('API_INSTALL') || die('API Installation wizard die');
 
 include_once './class/pathcontroller.php';
-include_once '../include/functions.php';
+include_once './include/functions.php';
 
 $pageHasForm = true;
 $pageHasHelp = true;

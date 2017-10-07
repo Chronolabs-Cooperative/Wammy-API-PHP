@@ -25,9 +25,9 @@
  * @author           DuGris (aka L. JEN) <dugris@frapi.org>
  **/
 
-
 define('_API_FATAL_MESSAGE', 'Fatal:~ %s!');
 require_once __DIR__ . '/include/common.inc.php';
+require_once __DIR__ . '/include/functions.php';
 defined('API_INSTALL') || die('API Installation wizard die');
 
 $pageHasForm = false;
@@ -35,7 +35,7 @@ $pageHasHelp = false;
 
 $vars =& $_SESSION['settings'];
 
-include_once '../mainfile.php';
+include_once '../../mainfile.php';
 
 require_once __DIR__ . '/class/dbmanager.php';
 $dbm = new Db_manager();

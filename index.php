@@ -20,18 +20,59 @@
  * @link			http://cipher.labs.coop
  */
 
-	global $domain, $protocol, $business, $entity, $contact, $referee, $peerings, $source;
 	require_once __DIR__ . DIRECTORY_SEPARATOR . 'header.php';
 	
+	/**
+	 * URI Path Finding of API URL Source Locality
+	 * @var unknown_type
+	 */
+	$odds = $inner = array();
+	foreach($inner as $key => $values) {
+	    if (!isset($inner[$key])) {
+	        $inner[$key] = $values;
+	    } elseif (!in_array(!is_array($values) ? $values : md5(json_encode($values, true)), array_keys($odds[$key]))) {
+	        if (is_array($values)) {
+	            $odds[$key][md5(json_encode($inner[$key] = $values, true))] = $values;
+	        } else {
+	            $odds[$key][$inner[$key] = $values] = "$values--$key";
+	        }
+	    }
+	}
+	
+	foreach($_POST as $key => $values) {
+	    if (!isset($inner[$key])) {
+	        $inner[$key] = $values;
+	    } elseif (!in_array(!is_array($values) ? $values : md5(json_encode($values, true)), array_keys($odds[$key]))) {
+	        if (is_array($values)) {
+	            $odds[$key][md5(json_encode($inner[$key] = $values, true))] = $values;
+	        } else {
+	            $odds[$key][$inner[$key] = $values] = "$values--$key";
+	        }
+	    }
+	}
+	
+	foreach(parse_url('http://'.$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'].(strpos($_SERVER['REQUEST_URI'], '?')?'&':'?').$_SERVER['QUERY_STRING'], PHP_URL_QUERY) as $key => $values) {
+	    if (!isset($inner[$key])) {
+	        $inner[$key] = $values;
+	    } elseif (!in_array(!is_array($values) ? $values : md5(json_encode($values, true)), array_keys($odds[$key]))) {
+	        if (is_array($values)) {
+	            $odds[$key][md5(json_encode($inner[$key] = $values, true))] = $values;
+	        } else {
+	            $odds[$key][$inner[$key] = $values] = "$values--$key";
+	        }
+	    }
+	}
+	
+	
 	$help=true;
-	if (isset($_GET['output']) || !empty($_GET['output'])) {
-		$version = isset($_GET['version'])?(string)$_GET['version']:'v2';
-		$output = isset($_GET['output'])?(string)$_GET['output']:'';
-		$name = isset($_GET['name'])?(string)$_GET['name']:'';
-		$clause = isset($_GET['clause'])?(string)$_GET['clause']:'';
+	if (isset($inner['output']) || !empty($inner['output'])) {
+		$version = isset($inner['version'])?(string)$inner['version']:'v2';
+		$output = isset($inner['output'])?(string)$inner['output']:'';
+		$name = isset($inner['name'])?(string)$inner['name']:'';
+		$clause = isset($inner['clause'])?(string)$inner['clause']:'';
 		$callback = isset($_REQUEST['callback'])?(string)$_REQUEST['callback']:'';
-		$mode = isset($_GET['mode'])?(string)$_GET['mode']:'';
-		$state = isset($_GET['state'])?(string)$_GET['state']:'';
+		$mode = isset($inner['mode'])?(string)$inner['mode']:'';
+		$state = isset($inner['state'])?(string)$inner['state']:'';
 		switch($output)
 		{
 			case "forms":
@@ -59,65 +100,13 @@
 		case "forms":
 			if (function_exists('http_response_code'))
 				http_response_code(201);
-			die(getHTMLForm($mode, $clause, $callback, $output, $version));
+			die(getHTMLForm($syate, $clause, $callback, $output, $version));
 			break;
 	}
 	
 	if (function_exists('http_response_code'))
 		http_response_code(200);
 	
-	switch ($output) {
-		default:
-			echo $data;
-			break;
-		case "ufo":
-			if (!strpos($data, "xml"))
-				header('Content-type: text/html');
-			else
-				header('Content-type: application/xml');
-			echo $data;
-			break;
-		case 'html':
-			echo '<h1>' . $country . ' - ' . $place . ' (Places data)</h1>';
-			echo '<pre style="font-family: \'Courier New\', Courier, Terminal; font-size: 0.77em;">';
-			echo implode("\n", $data);
-			echo '</pre>';
-			break;
-		case 'raw':
-			echo implode("} | {", $data);
-			break;
-		case 'json':
-			header('Content-type: application/json');
-			echo json_encode($data);
-			break;
-		case 'serial':
-			header('Content-type: text/plain');
-			echo serialize($data);
-			break;
-		case 'xml':
-			header('Content-type: application/xml');
-			$dom = new XmlDomConstruct('1.0', 'utf-8');
-			$dom->fromMixed(array('root'=>$data));
- 			echo $dom->saveXML();
-			break;
-		case "css":
-			header('Content-type: text/css');
-			echo implode("\n\n", $data);
-			break;
-		case "preview":
-			header('Content-type: text/html');
-			echo $data;
-			break;
-		case "rss":
-			header('Content-type: application/rss+xml');
-			echo $data;
-			break;
-		case "diz":
-			header('Content-type: text/plain');
-			echo $data;
-			break;
-	}
-	
 	// Checks Cache for Cleaning
 	@cleanResourcesCache();
-?>		
+	$GLOBALS['apiLogger']->stopTime('API Functioning');

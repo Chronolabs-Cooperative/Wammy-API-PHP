@@ -22,13 +22,14 @@ class PathStuffController
         'tmp' => '');
 
     public $apiPathDefault = array(
-        'lib'  => 'tmp',
+        'lib'  => 'lib',
         'tmp' => 'caches');
 
     public $tmpPath = array(
-        'caches' => array(
-            'api_cache'),
-        'configs');
+        'lib' => array(
+            'training',
+        )
+        );
 
     public $path_lookup = array(
         'root' => 'ROOT_PATH',

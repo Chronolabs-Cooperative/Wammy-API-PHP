@@ -21,7 +21,12 @@
  * @see					http://cipher.labs.coop
  */
 
-			
+    /**
+     * @var integer
+     */
+    define('API_CACHE_SECONDS', 844);
+    define('API_DELAY_SECONDS', floor(6.543 * 60));
+    
 	/**
 	 *
 	 * @var string
