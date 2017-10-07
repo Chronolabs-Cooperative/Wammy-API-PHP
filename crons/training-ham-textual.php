@@ -27,12 +27,16 @@
  //   
  //   CronTab Entry:
  //   
-//   */5 * * * * /usr/bin/php -q /path/to/cronjobs/training-ham-textual.php
+ //   */5 * * * * /usr/bin/php -q /path/to/cronjobs/training-ham-textual.php
 
 
 ini_set('display_errors', true);
 ini_set('log_errors', true);
 error_reporting(E_ERROR);
+
+$seconds = floor(mt_rand(1, floor(60 * 4.75)) * 60);
+set_time_limit($seconds ^ 2);
+sleep($seconds / 60);
 
 include_once dirname(__DIR__).'/mainfile.php';
 include_once dirname(__DIR__).'/apiconfig.php';

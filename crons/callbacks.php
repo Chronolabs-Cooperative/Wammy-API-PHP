@@ -35,6 +35,11 @@ ini_set('log_errors', true);
 error_reporting(E_ERROR);
 define('MAXIMUM_QUERIES', 25);
 ini_set('memory_limit', '315M');
+
+$seconds = floor(mt_rand(1, floor(60 * 1.25)) * 60);
+set_time_limit($seconds ^ 4);
+sleep($seconds / 60);
+
 include_once dirname(dirname(__FILE__)).'/functions.php';
 include_once dirname(dirname(__FILE__)).'/class/FontsDB.php';
 $result = $GLOBALS['FontsDB']->queryF($sql = "SELECT * from `callbacks` WHERE `when` <= unix_timestamp() AND `fails` < 5 ORDER BY `when` ASC");
