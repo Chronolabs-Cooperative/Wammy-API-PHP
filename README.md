@@ -10,6 +10,6 @@ This is designed to be used with PHP7 + Ubuntu 16.04+
 
 You must install spam assassin to use this tool the follow command will do that in Ubuntu terminal
 
-     $ sudo apt-get install spamassassin spamc
+     $ sudo apt-get install spamassassin spamc imagemagic* gocr
 
 execute this and your environment requirements for this are installed.

@@ -25,66 +25,84 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
+<meta property="og:title" content="<?php echo API_VERSION; ?>"/>
+<meta property="og:type" content="api<?php echo API_TYPE; ?>"/>
+<meta property="og:image" content="<?php echo API_URL; ?>/assets/images/logo_500x500.png"/>
+<meta property="og:url" content="<?php echo (isset($_SERVER["HTTPS"])?"https://":"http://").$_SERVER["HTTP_HOST"].$_SERVER["REQUEST_URI"]; ?>" />
+<meta property="og:site_name" content="<?php echo API_VERSION; ?> - <?php echo API_LICENSE_COMPANY; ?>"/>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta http-equiv="rating" content="general" />
+<meta http-equiv="author" content="wishcraft@users.sourceforge.net" />
+<meta http-equiv="copyright" content="<?php echo API_LICENSE_COMPANY; ?> &copy; <?php echo date("Y"); ?>" />
+<meta http-equiv="generator" content="Chronolabs Cooperative (<?php echo $place['iso3']; ?>)" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title><?php echo API_VERSION; ?> |~| <?php echo API_LICENSE_COMPANY; ?></title>
+<!-- AddThis Smart Layers BEGIN -->
+<!-- Go to http://www.addthis.com/get/smart-layers to customize -->
+<script type="text/javascript" src="//s7.addthis.com/js/300/addthis_widget.js#pubid=ra-50f9a1c208996c1d"></script>
+<script type="text/javascript">
+  addthis.layers({
+	'theme' : 'transparent',
+	'share' : {
+	  'position' : 'right',
+	  'numPreferredServices' : 6
+	}, 
+	'follow' : {
+	  'services' : [
+		{'service': 'facebook', 'id': 'Chronolabs'},
+		{'service': 'twitter', 'id': 'JohnRingwould'},
+		{'service': 'twitter', 'id': 'ChronolabsCoop'},
+		{'service': 'twitter', 'id': 'Cipherhouse'},
+		{'service': 'twitter', 'id': 'OpenRend'},
+	  ]
+	},  
+	'whatsnext' : {},  
+	'recommended' : {
+	  'title': 'Recommended for you:'
+	} 
+  });
+</script>
+<!-- AddThis Smart Layers END -->
+<link rel="stylesheet" href="<?php echo API_URL; ?>/assets/css/style.css" type="text/css" />
+<!-- Custom Fonts -->
+<link href="<?php echo API_URL; ?>/assets/media/Labtop/style.css" rel="stylesheet" type="text/css">
+<link href="<?php echo API_URL; ?>/assets/media/Labtop Bold/style.css" rel="stylesheet" type="text/css">
+<link href="<?php echo API_URL; ?>/assets/media/Labtop Bold Italic/style.css" rel="stylesheet" type="text/css">
+<link href="<?php echo API_URL; ?>/assets/media/Labtop Italic/style.css" rel="stylesheet" type="text/css">
+<link href="<?php echo API_URL; ?>/assets/media/Labtop Superwide Boldish/style.css" rel="stylesheet" type="text/css">
+<link href="<?php echo API_URL; ?>/assets/media/Labtop Thin/style.css" rel="stylesheet" type="text/css">
+<link href="<?php echo API_URL; ?>/assets/media/Labtop Unicase/style.css" rel="stylesheet" type="text/css">
+<link href="<?php echo API_URL; ?>/assets/media/LHF Matthews Thin/style.css" rel="stylesheet" type="text/css">
+<link href="<?php echo API_URL; ?>/assets/media/Life BT Bold/style.css" rel="stylesheet" type="text/css">
+<link href="<?php echo API_URL; ?>/assets/media/Life BT Bold Italic/style.css" rel="stylesheet" type="text/css">
+<link href="<?php echo API_URL; ?>/assets/media/Prestige Elite/style.css" rel="stylesheet" type="text/css">
+<link href="<?php echo API_URL; ?>/assets/media/Prestige Elite Bold/style.css" rel="stylesheet" type="text/css">
+<link href="<?php echo API_URL; ?>/assets/media/Prestige Elite Normal/style.css" rel="stylesheet" type="text/css">
+<link rel="stylesheet" href="<?php echo API_URL; ?>/assets/css/gradients.php" type="text/css" />
+<link rel="stylesheet" href="<?php echo API_URL; ?>/assets/css/shadowing.php" type="text/css" />
 
-	<?php 	$servicename = "Spam Testing Services"; 
-		$servicecode = "STS"; ?>
-	<meta property="og:url" content="<?php echo (isset($_SERVER["HTTPS"])?"https://":"http://").$_SERVER["HTTP_HOST"]; ?>" />
-	<meta property="og:site_name" content="<?php echo $servicename; ?> Open Services API's (With Source-code)"/>
-	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-	<meta http-equiv="rating" content="general" />
-	<meta http-equiv="author" content="wishcraft@users.sourceforge.net" />
-	<meta http-equiv="copyright" content="Chronolabs Cooperative &copy; <?php echo date("Y")-1; ?>-<?php echo date("Y")+1; ?>" />
-	<meta http-equiv="generator" content="wishcraft@users.sourceforge.net" />
-	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-	<link rel="shortcut icon" href="//labs.partnerconsole.net/execute2/external/reseller-logo">
-	<link rel="icon" href="//labs.partnerconsole.net/execute2/external/reseller-logo">
-	<link rel="apple-touch-icon" href="//labs.partnerconsole.net/execute2/external/reseller-logo">
-	<meta property="og:image" content="//labs.partnerconsole.net/execute2/external/reseller-logo"/>
-	<link rel="stylesheet" href="/style.css" type="text/css" />
-	<link rel="stylesheet" href="//css.ringwould.com.au/3/gradientee/stylesheet.css" type="text/css" />
-	<link rel="stylesheet" href="//css.ringwould.com.au/3/shadowing/styleheet.css" type="text/css" />
-	<title><?php echo $servicename; ?> (<?php echo $servicecode; ?>) Open API || Chronolabs Cooperative</title>
-	<meta property="og:title" content="<?php echo $servicecode; ?> API"/>
-	<meta property="og:type" content="<?php echo strtolower($servicecode); ?>-api"/>
-	<!-- AddThis Smart Layers BEGIN -->
-	<!-- Go to http://www.addthis.com/get/smart-layers to customize -->
-	<script type="text/javascript" src="//s7.addthis.com/js/300/addthis_widget.js#pubid=ra-50f9a1c208996c1d"></script>
-	<script type="text/javascript">
-	  addthis.layers({
-		'theme' : 'transparent',
-		'share' : {
-		  'position' : 'right',
-		  'numPreferredServices' : 6
-		}, 
-		'follow' : {
-		  'services' : [
-			{'service': 'twitter', 'id': 'ChronolabsCoop'},
-			{'service': 'twitter', 'id': 'Cipherhouse'},
-			{'service': 'twitter', 'id': 'OpenRend'},
-			{'service': 'facebook', 'id': 'Chronolabs'},
-			{'service': 'linkedin', 'id': 'founderandprinciple'},
-			{'service': 'google_follow', 'id': '105256588269767640343'},
-			{'service': 'google_follow', 'id': '116789643858806436996'}
-		  ]
-		},  
-		'whatsnext' : {},  
-		'recommended' : {
-		  'title': 'Recommended for you:'
-		} 
-	  });
-	</script>
-	<!-- AddThis Smart Layers END -->
 </head>
 <body>
 <div class="main">
-    <h1><?php echo $servicename; ?> (<?php echo $servicecode; ?>) Open API || Chronolabs Cooperative</h1>
+    <img style="float: right; margin: 11px; width: auto; height: auto; clear: none;" src="<?php echo API_URL; ?>/assets/images/logo_350x350.png" />
+    <h1><?php echo API_VERSION; ?> |~| <?php echo API_LICENSE_COMPANY; ?></h1>
     <p style="text-align: justify; font-size: 169.2356897%; font-weight: 400">This is an API Service for testing text or html content for spam, it will return either by callback or directly on call a hierestic score and marking for the content to allow you with estimated type in the array return!</p>
     <h2>Code API Documentation</h2>
     <p>You can find the phpDocumentor code API documentation at the following path :: <a href="<?php echo API_URL; ?>/docs/" target="_blank"><?php echo API_URL; ?>/docs/</a>. These should outline the source code core functions and classes for the API to function!</p>   
-	<h2>Test for Spam FORMS Document Output</h2>
+	<h2>Test for Spam/Ham based on AI Linguistic Training Engines</h2>
     <p>This is done with the <em>test.api</em> + <em>forms.api</em> extension at the end of the url, you can test for ham or spam on the API with this system!</p>
     <blockquote>
         <?php echo $testform = getHTMLForm('test'); ?>
+		<h3>Code Example:</h3>
+		<div style="max-height: 375px; overflow: scroll;">
+			<pre style="margin: 14px; padding: 12px; border: 2px solid #ee43a4;">
+<?php echo htmlspecialchars($testform); ?>
+			</pre>
+		</div>
+    </blockquote>
+    <p>Does a test of an image supported by imagemagic for spam/ham testing!</p>
+    <blockquote>
+        <?php echo $testform = getHTMLForm('image-test'); ?>
 		<h3>Code Example:</h3>
 		<div style="max-height: 375px; overflow: scroll;">
 			<pre style="margin: 14px; padding: 12px; border: 2px solid #ee43a4;">
@@ -96,6 +114,16 @@
     <p>This is done with the <em>training.api</em> + <em>forms.api</em> extension at the end of the url, this form will submit content to be analysed and used in meta for detecting spam or ham or to be forgotten from the testing matrix!</p>
     <blockquote>
         <?php echo $trainingform = getHTMLForm('training'); ?>
+		<h3>Code Example:</h3>
+		<div style="max-height: 375px; overflow: scroll;">
+			<pre style="margin: 14px; padding: 12px; border: 2px solid #ee43a4;">
+<?php echo htmlspecialchars($trainingform); ?>
+			</pre>
+		</div>
+    </blockquote>
+    <p>Does a training with an image of an image supported by imagemagic for spam/ham testing!</p>
+    <blockquote>
+        <?php echo $trainingform = getHTMLForm('image-training'); ?>
 		<h3>Code Example:</h3>
 		<div style="max-height: 375px; overflow: scroll;">
 			<pre style="margin: 14px; padding: 12px; border: 2px solid #ee43a4;">
@@ -143,30 +171,30 @@
 ?&gt;
 
 		</pre><br/><br/>
-        <font color="#001201">You basically import and output to the buffer the HTML Submission form for the form to test content as or for spam at the following URI: <strong><?php echo API_URL; ?>/v3/test/forms.api</strong> -- this will generate a HTML form with the return path specified for you to buffer -- see example below in PHP!</font><br/>
+        <font color="#001201">You basically import and output to the buffer the HTML Submission form for the form to test content as or for spam at the following URI: <strong><?php echo API_URL; ?>/v4/test/forms.api</strong> -- this will generate a HTML form with the return path specified for you to buffer -- see example below in PHP!</font><br/>
 		<pre style="margin: 14px; padding: 12px; border: 2px solid #ee43a4;">
 &lt;?php
 	// output the table & form
-	echo getURIData("<?php echo API_URL; ?>/v3/test/forms.api", 560, 560, 
+	echo getURIData("<?php echo API_URL; ?>/v4/test/forms.api", 560, 560, 
 	
 				 /* URL Variables passed as $_POST (required) */
-				array('return' => '<?php echo $source; ?>', 
-				      'callback' => '<?php echo API_URL; ?>/v3/uploads/callback.api'
+				array('return' => '<?php echo API_URL . '/'; ?>', 
+				      'callback' => '<?php echo API_URL; ?>/v4/uploads/callback.api'
 				      'sender-ip' => '<?php echo whitelistGetIP(true); ?>',
 				      'usernames' => array('sender'=>'guest', 'recipient' => 'webmaster'),
 				      'mimetype' => 'text/plain',
 				      'mode' => 'json'));
 ?&gt;
 		</pre><br/><br/>
-		<font color="#001201">You basically import and output to the buffer the HTML Submission form for training of the spam detection hierestics at the following URI: <strong><?php echo API_URL; ?>/v3/training/forms.api</strong> -- this will generate a HTML form with the return path specified for you to buffer -- see example below in PHP!</font><br/>
+		<font color="#001201">You basically import and output to the buffer the HTML Submission form for training of the spam detection hierestics at the following URI: <strong><?php echo API_URL; ?>/v4/training/forms.api</strong> -- this will generate a HTML form with the return path specified for you to buffer -- see example below in PHP!</font><br/>
 		<pre style="margin: 14px; padding: 12px; border: 2px solid #ee43a4;">
 &lt;?php
 	// output the table & form
-	echo getURIData("<?php echo API_URL; ?>/v3/training/forms.api", 560, 560, 
+	echo getURIData("<?php echo API_URL; ?>/v4/training/forms.api", 560, 560, 
 	
 				 /* URL Variables sent as $_POST (required) */
-				array('return' => '<?php echo $source; ?>', 
-				      'callback' => '<?php echo API_URL; ?>/v3/uploads/callback.api'
+				array('return' => '<?php echo API_URL . '/'; ?>', 
+				      'callback' => '<?php echo API_URL; ?>/v4/uploads/callback.api'
 				      'sender-ip' => '<?php echo whitelistGetIP(true); ?>',
 				      'usernames' => array('sender'=>'guest', 'recipient' => 'webmaster'),
 				      'mimetype' => 'text/plain',

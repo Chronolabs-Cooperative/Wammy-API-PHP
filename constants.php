@@ -26,27 +26,26 @@
 	 *
 	 * @var string
 	 */
-	define('API_VERSION', '3.0.3');
-	define('API_URL', (!isset($_SERVER["HTTP_HOST"]) ? "http://wammy.labs.coop" :
-						(isset($_SERVER["HTTPS"])?'https://':'http://').$_SERVER["HTTP_HOST"]));
-	define('API_URL_CALLBACK', API_URL . '/v3/%s/callback.api');
-	define('API_URL_FORGET', API_URL . '/v3/forget/training.api');
-	define('API_URL_SPAM', API_URL . '/v3/spam/training.api');
-	define('API_URL_HAM', API_URL . '/v3/ham/training.api');
-	define('API_POLINATING', (strpos(API_URL, 'localhost')||strpos(API_URL, 'labs.coop')?false:true));
+	define('API_URL_CALLBACK', API_URL . '/v4/%s/callback.api');
+	define('API_URL_FORGET', API_URL . '/v4/forget/training.api');
+	define('API_URL_SPAM', API_URL . '/v4/spam/training.api');
+	define('API_URL_HAM', API_URL . '/v4/ham/training.api');
+	define('API_URL_IMAGE_FORGET', API_URL . '/v4/forget/training/image.api');
+	define('API_URL_IMAGE_SPAM', API_URL . '/v4/spam/training/image.api');
+	define('API_URL_IMAGE_HAM', API_URL . '/v4/ham/training/image.api');
 	
 	/**
 	 *
 	 * @var string
 	 */
-	define('DIR_SPAM_TESTING', DIRECTORY_SEPARATOR . 'tmp' . DIRECTORY_SEPARATOR . 'spam-testing');
-	define('DIR_TRAINING_DATA', __DIR__ . DIRECTORY_SEPARATOR . 'training' . DIRECTORY_SEPARATOR . 'resource');
-	define('DIR_TRAINING_FORGET', __DIR__ . DIRECTORY_SEPARATOR . 'training' . DIRECTORY_SEPARATOR . 'forget');
-	define('DIR_TRAINING_SPAM', __DIR__ . DIRECTORY_SEPARATOR . 'training' . DIRECTORY_SEPARATOR . 'spam');
-	define('DIR_TRAINING_HAM', __DIR__ . DIRECTORY_SEPARATOR . 'training' . DIRECTORY_SEPARATOR . 'ham');
+	define('DIR_SPAM_TESTING', API_VAR_PATH . DIRECTORY_SEPARATOR . 'spam-testing');
+	define('DIR_TRAINING_DATA', API_PATH . DIRECTORY_SEPARATOR . 'training' . DIRECTORY_SEPARATOR . 'resource');
+	define('DIR_TRAINING_FORGET', API_PATH . DIRECTORY_SEPARATOR . 'training' . DIRECTORY_SEPARATOR . 'forget');
+	define('DIR_TRAINING_SPAM', API_PATH . DIRECTORY_SEPARATOR . 'training' . DIRECTORY_SEPARATOR . 'spam');
+	define('DIR_TRAINING_HAM', API_PATH . DIRECTORY_SEPARATOR . 'training' . DIRECTORY_SEPARATOR . 'ham');
 	
 	/******* DO NOT CHANGE THIS VARIABLE ****
 	 * @var string
 	 */
-	define('API_ROOT_NODE', 'http://wammy.labs.coop');
+	define('API_ROOT_NODE', 'http://wammy.snails.email');
 ?>

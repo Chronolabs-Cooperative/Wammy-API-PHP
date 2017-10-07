@@ -27,4 +27,24 @@
 	define("API_SPAMTRAINING_SPAM", "/usr/bin/sa-learn --spam --sync --folders='%s'");
 	define("API_SPAMTRAINING_FORGET", "/usr/bin/sa-learn --forget --sync --folders='%s'");
 
+	// Image Functions
+	define("API_IMAGE_CONVERT_JPG", "/usr/bin/convert -antialias -flatten -auto-gamma -auto-level -auto-orient \"%s\"  \"%s.normal.jpg\"");
+	define("API_IMAGE_CONTRAST_JPG", "/usr/bin/convert -contrast -antialias -flatten -auto-gamma -auto-level -auto-orient \"%s\"  \"%s.contrast.jpg\"");
+	define("API_IMAGE_TINTRED_JPG", "/usr/bin/convert -tint red -antialias -flatten -auto-gamma -auto-level -auto-orient \"%s\"  \"%s.red.jpg\"");
+	define("API_IMAGE_TINTBLUE_JPG", "/usr/bin/convert -tint blue -antialias -flatten -auto-gamma -auto-level -auto-orient \"%s\"  \"%s.blue.jpg\"");
+	define("API_IMAGE_TINTGREEN_JPG", "/usr/bin/convert -tint green -antialias -flatten -auto-gamma -auto-level -auto-orient \"%s\"  \"%s.green.jpg\"");
+	define("API_IMAGE_TINTGREY_JPG", "/usr/bin/convert -tint grey -antialias -flatten -auto-gamma -auto-level -auto-orient \"%s\"  \"%s.grey.jpg\"");
+	define("API_IMAGE_TINTBLACK_JPG", "/usr/bin/convert -tint black -antialias -flatten -auto-gamma -auto-level -auto-orient \"%s\"  \"%s.black.jpg\"");
+	define("API_IMAGE_JPGTOPNM", "/usr/bin/jpegtopnm \"%s\"  \"%s.pnm\"");
+	define("API_IMAGE_OCR", "/usr/bin/gocr -i \"%s\" -f UTF8");
+	
+	if (!is_file(__DIR__ . DIRECTORY_SEPARATOR . 'mainfile.php') || !is_file(__DIR__ . DIRECTORY_SEPARATOR . 'include' . DIRECTORY_SEPARATOR . 'license.php'))
+	{
+	    header('Location: ' . "./install");
+	    exit(0);
+	}
+	
+	require_once __DIR__ . DIRECTORY_SEPARATOR . 'constants.php';
+	require_once __DIR__ . DIRECTORY_SEPARATOR . 'mainfile.php';
+	
 ?>
