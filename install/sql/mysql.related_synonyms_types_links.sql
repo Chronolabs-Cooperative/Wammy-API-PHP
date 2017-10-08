@@ -23,11 +23,9 @@ DROP TABLE IF EXISTS `related_synonyms_types_links`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `related_synonyms_types_links` (
-  `stid` mediumint(32) NOT NULL DEFAULT '0',
   `rstid` mediumint(32) NOT NULL DEFAULT '0',
-  `syid` mediumint(255) NOT NULL DEFAULT '0',
   `rsyid` mediumint(255) NOT NULL DEFAULT '0',
-  KEY `SEARCH` (`stid`,`rstid`,`syid`,`rsyid`)
+  KEY `SEARCH` (`rstid`,`rsyid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
