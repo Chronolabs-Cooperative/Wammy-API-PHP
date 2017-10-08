@@ -23,7 +23,7 @@ DROP TABLE IF EXISTS `words`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `words` (
-  `wid` mediumint(64) NOT NULL DEFAULT '0',
+  `wid` mediumint(64) NOT NULL AUTO_INCREMENT,
   `prefix` varchar(16) NOT NULL DEFAULT '',
   `word` varchar(64) NOT NULL DEFAULT '',
   `mode` enum('textual','image','unknown') NOT NULL DEFAULT 'unknown',
